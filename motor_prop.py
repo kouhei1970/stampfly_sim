@@ -2,6 +2,8 @@ class motor_prop():
     def __init__(self):
         self.omega = 0.0
         self.e = 0.0
+        self.i = 0.0
+        self.thrust = 0.0
 
         #実験値
         #回転数と電圧の関係から求めたパラメータ
@@ -37,10 +39,10 @@ class motor_prop():
     def omega_dot(self, voltage):
         return ( -(self.Dm + self.Km**2/self.Rm ) * self.omega - self.Cq * self.omega - self.Qf + self.Km * voltage/self.Rm)/self.Jmp
 
-    def current(self, voltage):
+    def get_current(self, voltage):
         return (voltage - self.Km * self.omega)/self.Rm
     
-    def thrust(self):
+    def get_thrust(self):
         return self.Ct * self.omega**2
     
     def torque(self):
@@ -53,4 +55,6 @@ class motor_prop():
         k3 = self.omega_dot(voltage)
         k4 = self.omega_dot(voltage)
         self.omega += (k1 + 2*k2 + 2*k3 + k4) * dt / 6.0
+        self.i = self.get_current(voltage)
+        self.thrust = self.get_thrust()
         return self.omega
