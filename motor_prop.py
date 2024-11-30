@@ -45,7 +45,7 @@ class motor_prop():
     def get_thrust(self):
         return self.Ct * self.omega**2
     
-    def torque(self):
+    def get_torque(self):
         return self.Cq * self.omega**2
 
     def step(self, voltage, dt):
