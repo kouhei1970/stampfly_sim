@@ -36,6 +36,10 @@ class motor_prop():
         #print('B=',(self.Dm+self.Km**2/self.Rm)/(self.Km/self.Rm))
         #print('C=',(self.Qf*self.Rm/self.Km))    
 
+        self.armx = 0.025
+        self.army = 0.025
+
+
     def omega_dot(self, voltage):
         return ( -(self.Dm + self.Km**2/self.Rm ) * self.omega - self.Cq * self.omega - self.Qf + self.Km * voltage/self.Rm)/self.Jmp
 
