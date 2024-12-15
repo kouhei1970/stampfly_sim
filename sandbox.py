@@ -33,7 +33,7 @@ def Thandle_motion():
     fps = 60
     anim_time = 1/fps
     h = 0.001
-    tmax =25.6
+    tmax =200.0
 
     T=[]
     EULER=[]
@@ -194,4 +194,4 @@ def copter_motion():
     plt.show()
 
 if __name__ == '__main__':
-    copter_motion()
+    Thandle_motion()
