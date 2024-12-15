@@ -25,38 +25,38 @@ scene.camera.axis = vector(0, 0,-2.5)  # カメラの向き
 #print(frame.axis)
 
 #シミュレーションの初期値
-pqr0= [[270*np.pi/180],[0.001],[0.0]]
+pqr0= [[90*np.pi/180],[0.001],[0.0]]
 body = rb.rigidbody( pqr=pqr0)
 
 t=0.0
 fps = 60
 anim_time = 1/fps
-h = 0.01
-tmax =5.0
+h = 0.001
+tmax =25.6
 
 T=[]
 EULER=[]
 PQR=[]
 
 T.append(t)
-EULER.append(body.euler)
-PQR.append(body.pqr)
+EULER.append(body.euler.copy())
+PQR.append(body.pqr.copy())
 
 
 for i in range(int(tmax/h)):
-    rate(fps)
     force = [[0.0],[0.0],[0.0]]
     torque = [[0.0],[0.0],[0.0]]
     body.step(force=force, torque=torque, h=h)
     t = t + h
+    
     T.append(t)
-    print(body.pqr)
-    EULER.append(body.euler)
-    PQR.append(body.pqr)
+    EULER.append(body.euler.copy())
+    PQR.append(body.pqr.copy())
 
 
     #3D描画
     if(t>anim_time):
+        rate(fps)
         T_handle.axis = vector(body.DCM[0,0], body.DCM[1,0], body.DCM[2,0])
         T_handle.up = vector(body.DCM[0,1], body.DCM[1,1], body.DCM[2,1])
         anim_time += 1/fps
@@ -67,13 +67,14 @@ for i in range(int(tmax/h)):
 
 
 T=np.array(T)
+#print(EULER)
 EULER=np.array(EULER)
 PQR=np.array(PQR)
 
-print("PQR")
-print(PQR)
-print("PQR_COL")
-print(PQR[:,0,0])
+#print("PQR")
+#print(PQR)
+#print("PQR_COL")
+#print(PQR[:,1,0])
 
 plt.subplot(3,1,1)
 plt.plot(T, PQR[:,0,0], label='P')
