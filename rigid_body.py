@@ -73,10 +73,12 @@ class rigidbody():
     def pqr_dot(self, pqr, torque):
         #dH/dt = torque
         #H = I @ pqr
-        #dH/dt = I @ pqr_dot + (pqr x I) @ pqr
-        #I @ pqr_dot + (pqr x I) @ pqr = torque
-        #I @ pqr_dot = torque - (pqr x I) @ pqr
-        # pqr_dot = I^-1 @ (torque - (pqr x I) @ pqr)
+        #dH/dt = [dH/dt]+pqr x H
+        #[dI@pqr/dt] + pqr x (I @ pqr) = torque
+        #I @ [dpqr/dt] + pqr x (I @ pqr) = torque
+        #I @ [dpqr/dt] = torque - pqr x (I @ pqr)
+        #dpqr/dt = I^-1 @ (torque - pqr x (I @ pqr))
+        #pqr_dot = I^-1 @ (torque - pqr x (I @ pqr))
         torque = np.array(torque)
         pqr_dot = np.linalg.inv(self.inertia) @ (torque - np.cross(pqr, self.inertia @ pqr, axis=0))
         return pqr_dot
@@ -117,9 +119,16 @@ class rigidbody():
         q1=quat[1][0]
         q2=quat[2][0]
         q3=quat[3][0]
-        euler = np.array([[np.arctan2(2*(q0*q1 + q2*q3), 1 - 2*(q1**2 + q2**2))], 
-                              [np.arcsin(2*(q0*q2 - q3*q1))], 
-                              [np.arctan2(2*(q0*q3 + q1*q2), 1 - 2*(q2**2 + q3**2))]])
+
+        asin = -2*(q1*q3 - q0*q2)
+        if asin > 1.0:
+            asin = 1.0 
+        elif asin < -1.0:
+            asin = -1.0
+
+        euler = np.array([[np.arctan2(2*(q0*q1 + q2*q3), q0**2 - q1**2 - q2**2 + q3**2)], 
+                              [np.arcsin(asin)], 
+                              [np.arctan2(2*(q0*q3 + q1*q2), q0**2 + q1**2 - q2**2 - q3**2)]])
         return euler
     
     def normalize_quat(self):
