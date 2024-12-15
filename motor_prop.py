@@ -40,8 +40,8 @@ class motor_prop():
         self.army = 0.025
 
 
-    def omega_dot(self, voltage):
-        return ( -(self.Dm + self.Km**2/self.Rm ) * self.omega - self.Cq * self.omega - self.Qf + self.Km * voltage/self.Rm)/self.Jmp
+    def omega_dot(self, omega, voltage):
+        return ( -(self.Dm + self.Km**2/self.Rm ) * omega - self.Cq * omega - self.Qf + self.Km * voltage/self.Rm)/self.Jmp
 
     def get_current(self, voltage):
         return (voltage - self.Km * self.omega)/self.Rm
@@ -54,10 +54,10 @@ class motor_prop():
 
     def step(self, voltage, dt):
         # Runge-Kutta 4th order
-        k1 = self.omega_dot(voltage)
-        k2 = self.omega_dot(voltage)
-        k3 = self.omega_dot(voltage)
-        k4 = self.omega_dot(voltage)
+        k1 = self.omega_dot(self.omega, voltage)
+        k2 = self.omega_dot(self.omega + k1 * dt / 2.0, voltage)
+        k3 = self.omega_dot(self.omega + k2 * dt / 2.0, voltage)
+        k4 = self.omega_dot(self.omega + k3 * dt, voltage)
         self.omega += (k1 + 2*k2 + 2*k3 + k4) * dt / 6.0
         self.i = self.get_current(voltage)
         self.thrust = self.get_thrust()

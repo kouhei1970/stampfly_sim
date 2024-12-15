@@ -17,7 +17,6 @@ class battery():
         self.cells = 0
         self.series = 0
         self.parallel = 0
-        self.chemistry
 
 
         

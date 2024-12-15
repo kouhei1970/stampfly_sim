@@ -16,8 +16,12 @@ def test_stampfly():
     THRUST.append(stampfly.mp1.thrust)
     T.append(t)
 
-    while t < 0.2:
-        voltage = 1.0
+    while t < 0.4:
+        if t<0.2:
+            voltage = 3.7*0.5
+        else:
+            voltage = 3.7*0.6
+            
         stampfly.mp1.step(voltage, h)
         t += h
         OMEGA.append(stampfly.mp1.omega)
