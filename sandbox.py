@@ -33,7 +33,7 @@ def Thandle_motion():
     fps = 60
     anim_time = 1/fps
     h = 0.001
-    tmax =200.0
+    tmax =25.6
 
     T=[]
     EULER=[]
@@ -43,7 +43,7 @@ def Thandle_motion():
     EULER.append(body.euler.copy())
     PQR.append(body.pqr.copy())
 
-
+    sleep(2)
     for i in range(int(tmax/h)):
         force = [[0.0],[0.0],[0.0]]
         torque = [[0.0],[0.0],[0.0]]
