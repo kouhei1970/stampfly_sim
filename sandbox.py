@@ -26,7 +26,7 @@ scene.camera.axis = vector(0, 0,-2.5)  # カメラの向き
 
 #シミュレーションの初期値
 pqr0= [[90*np.pi/180],[0.001],[0.0]]
-body = rb.rigidbody( pqr=pqr0)
+body = rb.rigidbody(inersia=[[1.,0,0],[0,2.,0],[0,0,0.5]], pqr=pqr0)
 
 t=0.0
 fps = 60

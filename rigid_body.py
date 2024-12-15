@@ -1,10 +1,10 @@
 import numpy as np
 
 class rigidbody():
-    def __init__(self, mass=1.0, position=[[0.0],[0.0],[0.0]], velocity=[[0.0],[0.0],[0.0]], pqr=[[0.0],[0.0],[0.0]], euler=[[0.0],[0.0],[0.0]]):
+    def __init__(self, mass=1.0, inersia=np.eye(3), position=[[0.0],[0.0],[0.0]], velocity=[[0.0],[0.0],[0.0]], pqr=[[0.0],[0.0],[0.0]], euler=[[0.0],[0.0],[0.0]]):
         #DCM(Direct Cosine Matrix) from body frame to inertial frame:
         self.mass = mass
-        self.inertia = np.array([[1.,0,0],[0,2.,0],[0,0,0.5]])#np.eye(3)
+        self.inertia = inersia#np.array()#np.eye(3)
         self.euler = np.array(euler)
         self.quat = self.euler2quat(euler)
         self.DCM = self.quat_dcm(self.quat)
