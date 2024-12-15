@@ -54,6 +54,7 @@ for i in range(int(tmax/h)):
     EULER.append(body.euler)
     PQR.append(body.pqr)
 
+
     #3D描画
     if(t>anim_time):
         T_handle.axis = vector(body.DCM[0,0], body.DCM[1,0], body.DCM[2,0])
@@ -69,9 +70,10 @@ T=np.array(T)
 EULER=np.array(EULER)
 PQR=np.array(PQR)
 
+print("PQR")
 print(PQR)
+print("PQR_COL")
 print(PQR[:,0,0])
-#print(EULER[:,0,0])
 
 plt.subplot(3,1,1)
 plt.plot(T, PQR[:,0,0], label='P')
