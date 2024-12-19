@@ -68,7 +68,6 @@ def Thandle_motion():
 
 
     T=np.array(T)
-    #print(EULER)
     EULER=np.array(EULER)
     PQR=np.array(PQR)
 

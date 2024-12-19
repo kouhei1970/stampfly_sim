@@ -61,4 +61,3 @@ class motor_prop():
         self.omega += (k1 + 2*k2 + 2*k3 + k4) * dt / 6.0
         self.i = self.get_current(voltage)
         self.thrust = self.get_thrust()
-        return self.omega

@@ -1,5 +1,7 @@
 import numpy as np
 
+#DCM(Direct Cosine Matrix) is transform from body frame to inertial frame.
+
 class rigidbody():
     def __init__(self, mass=1.0, inersia=np.eye(3), position=[[0.0],[0.0],[0.0]], velocity=[[0.0],[0.0],[0.0]], pqr=[[0.0],[0.0],[0.0]], euler=[[0.0],[0.0],[0.0]]):
         #DCM(Direct Cosine Matrix) from body frame to inertial frame:
@@ -134,7 +136,7 @@ class rigidbody():
     def normalize_quat(self):
         self.quat = self.quat/np.linalg.norm(self.quat)
     
-    def step(self, force, torque, h):
+    def step(self, force, torque, dt):
         #RK4で剛体の運動方程式を解くとともに,グローバル座標系の速度,位置,DCMを更新する
         #1. k1を求める
         k1_uvw = self.uvw_dot(self.uvw, self.pqr, force)
@@ -142,25 +144,25 @@ class rigidbody():
         k1_quat = self.quat_dot(self.quat, self.pqr)
         k1_position = self.position_dot(self.uvw, self.quat)
         #2. k2を求める
-        k2_uvw = self.uvw_dot(self.uvw + h/2*k1_uvw, self.pqr + h/2*k1_pqr, force)
-        k2_pqr = self.pqr_dot(self.pqr + h/2*k1_pqr, torque)
-        k2_quat = self.quat_dot(self.quat + h/2*k1_quat, self.pqr + h/2*k1_pqr)
-        k2_position = self.position_dot(self.uvw + h/2*k1_uvw, self.quat + h/2*k1_quat)
+        k2_uvw = self.uvw_dot(self.uvw + dt/2*k1_uvw, self.pqr + dt/2*k1_pqr, force)
+        k2_pqr = self.pqr_dot(self.pqr + dt/2*k1_pqr, torque)
+        k2_quat = self.quat_dot(self.quat + dt/2*k1_quat, self.pqr + dt/2*k1_pqr)
+        k2_position = self.position_dot(self.uvw + dt/2*k1_uvw, self.quat + dt/2*k1_quat)
         #3. k3を求める
-        k3_uvw = self.uvw_dot(self.uvw + h/2*k2_uvw, self.pqr + h/2*k2_pqr, force)
-        k3_pqr = self.pqr_dot(self.pqr + h/2*k2_pqr, torque)
-        k3_quat = self.quat_dot(self.quat + h/2*k2_quat, self.pqr + h/2*k2_pqr)
-        k3_position = self.position_dot(self.uvw + h/2*k2_uvw, self.quat + h/2*k2_quat)
+        k3_uvw = self.uvw_dot(self.uvw + dt/2*k2_uvw, self.pqr + dt/2*k2_pqr, force)
+        k3_pqr = self.pqr_dot(self.pqr + dt/2*k2_pqr, torque)
+        k3_quat = self.quat_dot(self.quat + dt/2*k2_quat, self.pqr + dt/2*k2_pqr)
+        k3_position = self.position_dot(self.uvw + dt/2*k2_uvw, self.quat + dt/2*k2_quat)
         #4. k4を求める
-        k4_uvw = self.uvw_dot(self.uvw + h*k3_uvw, self.pqr + h*k3_pqr, force)
-        k4_pqr = self.pqr_dot(self.pqr + h*k3_pqr, torque)
-        k4_quat = self.quat_dot(self.quat + h*k3_quat, self.pqr + h*k3_pqr)
-        k4_position = self.position_dot(self.uvw + h*k3_uvw, self.quat + h*k3_quat)
+        k4_uvw = self.uvw_dot(self.uvw + dt*k3_uvw, self.pqr + dt*k3_pqr, force)
+        k4_pqr = self.pqr_dot(self.pqr + dt*k3_pqr, torque)
+        k4_quat = self.quat_dot(self.quat + dt*k3_quat, self.pqr + dt*k3_pqr)
+        k4_position = self.position_dot(self.uvw + dt*k3_uvw, self.quat + dt*k3_quat)
         #5. 次の状態を求める
-        self.uvw += h/6*(k1_uvw + 2*k2_uvw + 2*k3_uvw + k4_uvw)
-        self.pqr += h/6*(k1_pqr + 2*k2_pqr + 2*k3_pqr + k4_pqr)
-        self.quat += h/6*(k1_quat + 2*k2_quat + 2*k3_quat + k4_quat)
-        self.position += h/6*(k1_position + 2*k2_position + 2*k3_position + k4_position)
+        self.uvw += dt/6*(k1_uvw + 2*k2_uvw + 2*k3_uvw + k4_uvw)
+        self.pqr += dt/6*(k1_pqr + 2*k2_pqr + 2*k3_pqr + k4_pqr)
+        self.quat += dt/6*(k1_quat + 2*k2_quat + 2*k3_quat + k4_quat)
+        self.position += dt/6*(k1_position + 2*k2_position + 2*k3_position + k4_position)
         #6. quatを正規化する
         self.normalize_quat()
         #7. DCMを更新する
