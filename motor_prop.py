@@ -1,3 +1,5 @@
+import numpy as np
+
 class motor_prop():
     def __init__(self):
         self.omega = 0.0
@@ -14,8 +16,8 @@ class motor_prop():
         self.Lm = 1.0e-6
         self.Rm = 0.34
         #回転数と推力・トルク測定実験から求めたパラメータ
-        self.Ct = 1.0e-8
-        self.Cq = 9.75e-11
+        self.Ct = 1.00e-8
+        self.Cq = 9.71e-11
         #形状と重量から推定した慣性モーメント
         self.Jmp = 2.01e-8 
 
@@ -39,9 +41,15 @@ class motor_prop():
         self.armx = 0.025
         self.army = 0.025
 
+    def equilibrium_anguler_velocity(self, T):
+        return np.sqrt(T/self.Ct) 
 
+    def equilibrium_voltage(self, T):
+        omega0 = self.equilibrium_anguler_velocity(T)
+        return self.Rm * ((self.Dm + self.Km**2/self.Rm) * omega0 + self.Cq * omega0**2 + self.Qf) / self.Km
+    
     def omega_dot(self, omega, voltage):
-        return ( -(self.Dm + self.Km**2/self.Rm ) * omega - self.Cq * omega - self.Qf + self.Km * voltage/self.Rm)/self.Jmp
+        return ( -(self.Dm + self.Km**2/self.Rm ) * omega - self.Cq * omega**2 - self.Qf + self.Km * voltage/self.Rm)/self.Jmp
 
     def get_current(self, voltage):
         return (voltage - self.Km * self.omega)/self.Rm
@@ -51,6 +59,9 @@ class motor_prop():
     
     def get_torque(self):
         return self.Cq * self.omega**2
+
+    def set_anguler_velocity(self, omega):
+        self.omega = omega
 
     def step(self, voltage, dt):
         # Runge-Kutta 4th order

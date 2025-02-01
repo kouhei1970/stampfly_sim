@@ -20,9 +20,9 @@ class rigidbody():
         q1 = quat[1][0]
         q2 = quat[2][0]
         q3 = quat[3][0]
-        DCM = np.array([[q0**2 + q1**2 - q2**2 - q3**2, 2*(q1*q2 - q0*q3), 2*(q1*q3 + q0*q2)], 
-                             [2*(q1*q2 + q0*q3), q0**2 - q1**2 + q2**2 - q3**2, 2*(q2*q3 - q0*q1)], 
-                             [2*(q1*q3 - q0*q2), 2*(q2*q3 + q0*q1), q0**2 - q1**2 - q2**2 + q3**2]])
+        DCM = np.array([[q0**2 + q1**2 - q2**2 - q3**2, 2*(q1*q2 + q0*q3), 2*(q1*q3 - q0*q2) ], 
+                        [2*(q1*q2 - q0*q3), q0**2 - q1**2 + q2**2 - q3**2, 2*(q2*q3 + q0*q1) ], 
+                        [2*(q1*q3 + q0*q2), 2*(q2*q3 - q0*q1), q0**2 - q1**2 - q2**2 + q3**2 ]])
         return DCM
 
     def euler_dcm(self, euler):
@@ -36,8 +36,8 @@ class rigidbody():
         s_psi = np.sin(psi)
         c_psi = np.cos(psi)
         DCM = np.array([[c_tht*c_psi, s_phi*s_tht*c_psi - c_phi*s_psi, c_phi*s_tht*c_psi + s_phi*s_psi], 
-                             [c_tht*s_psi, s_phi*s_tht*s_psi + c_phi*c_psi, c_phi*s_tht*s_psi - s_phi*c_psi], 
-                             [-s_tht, s_phi*c_tht, c_phi*c_tht]])
+                        [c_tht*s_psi, s_phi*s_tht*s_psi + c_phi*c_psi, c_phi*s_tht*s_psi - s_phi*c_psi], 
+                        [-s_tht, s_phi*c_tht, c_phi*c_tht]])
         return DCM
         
     def velocity(self, uvw, DCM):
@@ -66,10 +66,10 @@ class rigidbody():
         return quat_dot
     
     def uvw_dot(self, uvw, pqr, force):
-        #m [duvw/dt] + omaga x uvw = force
-        #[duvw/dt] = force/m - (omaga x uvw)/m
+        #m ([duvw/dt] + omaga x uvw) = force
+        #[duvw/dt] = force/m - (omaga x uvw)
         force = np.array(force)
-        uvw_dot = force/self.mass - np.cross(pqr, uvw, axis=0)/self.mass
+        uvw_dot = force/self.mass - np.cross(pqr, uvw, axis=0)
         return uvw_dot
 
     def pqr_dot(self, pqr, torque):
@@ -89,7 +89,8 @@ class rigidbody():
         #dposition/dt = velocity
         #velocity = DCM @ uvw
         #dposition/dt = DCM @ uvw
-        position_dot = self.quat_dcm(quat) @ uvw
+        dcm = self.quat_dcm(quat)
+        position_dot = dcm @ uvw
         return position_dot
 
     def uvw2velocity(self, uvw, DCM):
@@ -97,7 +98,7 @@ class rigidbody():
         return velocity
     
     def velocity2uvw(self, velocity, DCM):
-        uvw = np.linalg.inv(DCM) @ velocity
+        uvw = DCM.T @ velocity
         return uvw
     
     def euler2quat(self, euler):
@@ -135,6 +136,13 @@ class rigidbody():
     
     def normalize_quat(self):
         self.quat = self.quat/np.linalg.norm(self.quat)
+
+
+    def set_pqr(self, pqr):
+        self.pqr = np.array(pqr)
+    
+    def set_uvw(self, uvw):
+        self.uvw = np.array(uvw)
     
     def step(self, force, torque, dt):
         #RK4で剛体の運動方程式を解くとともに,グローバル座標系の速度,位置,DCMを更新する
@@ -144,25 +152,25 @@ class rigidbody():
         k1_quat = self.quat_dot(self.quat, self.pqr)
         k1_position = self.position_dot(self.uvw, self.quat)
         #2. k2を求める
-        k2_uvw = self.uvw_dot(self.uvw + dt/2*k1_uvw, self.pqr + dt/2*k1_pqr, force)
-        k2_pqr = self.pqr_dot(self.pqr + dt/2*k1_pqr, torque)
-        k2_quat = self.quat_dot(self.quat + dt/2*k1_quat, self.pqr + dt/2*k1_pqr)
-        k2_position = self.position_dot(self.uvw + dt/2*k1_uvw, self.quat + dt/2*k1_quat)
+        k2_uvw = self.uvw_dot(self.uvw + 0.5*dt*k1_uvw, self.pqr + 0.5*dt*k1_pqr, force)
+        k2_pqr = self.pqr_dot(self.pqr + 0.5*dt*k1_pqr, torque)
+        k2_quat = self.quat_dot(self.quat + 0.5*dt*k1_quat, self.pqr + 0.5*dt*k1_pqr)
+        k2_position = self.position_dot(self.uvw + 0.5*dt*k1_uvw, self.quat + 0.5*dt*k1_quat)
         #3. k3を求める
-        k3_uvw = self.uvw_dot(self.uvw + dt/2*k2_uvw, self.pqr + dt/2*k2_pqr, force)
-        k3_pqr = self.pqr_dot(self.pqr + dt/2*k2_pqr, torque)
-        k3_quat = self.quat_dot(self.quat + dt/2*k2_quat, self.pqr + dt/2*k2_pqr)
-        k3_position = self.position_dot(self.uvw + dt/2*k2_uvw, self.quat + dt/2*k2_quat)
+        k3_uvw = self.uvw_dot(self.uvw + 0.5*dt*k2_uvw, self.pqr + 0.5*dt*k2_pqr, force)
+        k3_pqr = self.pqr_dot(self.pqr + 0.5*dt*k2_pqr, torque)
+        k3_quat = self.quat_dot(self.quat + 0.5*dt*k2_quat, self.pqr + 0.5*dt*k2_pqr)
+        k3_position = self.position_dot(self.uvw + 0.5*dt*k2_uvw, self.quat + 0.5*dt*k2_quat)
         #4. k4を求める
         k4_uvw = self.uvw_dot(self.uvw + dt*k3_uvw, self.pqr + dt*k3_pqr, force)
         k4_pqr = self.pqr_dot(self.pqr + dt*k3_pqr, torque)
         k4_quat = self.quat_dot(self.quat + dt*k3_quat, self.pqr + dt*k3_pqr)
         k4_position = self.position_dot(self.uvw + dt*k3_uvw, self.quat + dt*k3_quat)
         #5. 次の状態を求める
-        self.uvw += dt/6*(k1_uvw + 2*k2_uvw + 2*k3_uvw + k4_uvw)
-        self.pqr += dt/6*(k1_pqr + 2*k2_pqr + 2*k3_pqr + k4_pqr)
-        self.quat += dt/6*(k1_quat + 2*k2_quat + 2*k3_quat + k4_quat)
-        self.position += dt/6*(k1_position + 2*k2_position + 2*k3_position + k4_position)
+        self.uvw += dt*(k1_uvw + 2*k2_uvw + 2*k3_uvw + k4_uvw)/6
+        self.pqr += dt*(k1_pqr + 2*k2_pqr + 2*k3_pqr + k4_pqr)/6
+        self.quat += dt*(k1_quat + 2*k2_quat + 2*k3_quat + k4_quat)/6
+        self.position += dt*(k1_position + 2*k2_position + 2*k3_position + k4_position)/6
         #6. quatを正規化する
         self.normalize_quat()
         #7. DCMを更新する
@@ -170,5 +178,13 @@ class rigidbody():
         #8. eulerを更新する
         self.euler = self.quat2euler(self.quat)
         #9. velocityを更新する
-        self.velocity = self.uvw2velocity(self.uvw, self.DCM)        
+        self.velocity = self.uvw2velocity(self.uvw, self.DCM)
+
+        #print("uvw",self.uvw.T)
+        #print("rk", (dt*(k1_uvw + 2*k2_uvw + 2*k3_uvw + k4_uvw)/6).T)
+        #print("force",force)
+        #print("pqr",self.pqr.T)
+        #print("quat",self.quat.T)
+        
+
     
