@@ -6,10 +6,9 @@ import battery as bt
 class multicopter():
     '''
     Rotor configuration:
-    FL4   FR1
-        X
-    RL3   RR2
-
+    4_FL_CW    1_FR_CCW
+             X
+    3_RL_CCW   2_RR_CW
     '''
     def __init__(self, mass, inersia):
         self.body = rb.rigidbody(mass=mass, inersia=inersia)
@@ -37,27 +36,8 @@ class multicopter():
         weight = self.body.mass * 9.81
         gravity = np.array([[0.0], [0.0], [weight]])
         gravity_body= self.body.DCM.T @ gravity
-        thrust1 = self.mp1.get_thrust()
-        thrust2 = self.mp2.get_thrust()
-        thrust3 = self.mp3.get_thrust()
-        thrust4 = self.mp4.get_thrust()
-        #armx1 = self.mp1.armx
-        #armx2 = self.mp2.armx
-        #armx3 = self.mp3.armx
-        #armx4 = self.mp4.armx
-        #army1 = self.mp1.army
-        #army2 = self.mp2.army
-        #army3 = self.mp3.army
-        #army4 = self.mp4.army
-        kappa1 = self.mp1.kappa
-        kappa2 = self.mp2.kappa
-        kappa3 = self.mp3.kappa
-        kappa4 = self.mp4.kappa    
         
         #Moment
-        #moment_L = -thrust1 * army1 - thrust2 * army2 + thrust3 * army3 + thrust4 * army4    - 1e-5*np.sign(rate_p)*rate_p**2
-        #moment_M = thrust1 * armx1 - thrust2 * armx2 - thrust3 * armx3 + thrust4 * armx4     - 1e-5*np.sign(rate_q)*rate_q**2
-        #moment_N = thrust1 * kappa1 - thrust2 * kappa2 + thrust3 * kappa3 - thrust4 * kappa4 - 1e-5*np.sign(rate_r)*rate_r**2        
         moment = self.mp1.get_moment() + self.mp2.get_moment() + self.mp3.get_moment() + self.mp4.get_moment()
         moment_L = moment[0][0] - 1e-5*np.sign(rate_p)*rate_p**2
         moment_M = moment[1][0] - 1e-5*np.sign(rate_q)*rate_q**2

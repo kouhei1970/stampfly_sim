@@ -179,12 +179,6 @@ class rigidbody():
         self.euler = self.quat2euler(self.quat)
         #9. velocityを更新する
         self.velocity = self.uvw2velocity(self.uvw, self.DCM)
-
-        #print("uvw",self.uvw.T)
-        #print("rk", (dt*(k1_uvw + 2*k2_uvw + 2*k3_uvw + k4_uvw)/6).T)
-        #print("force",force)
-        #print("pqr",self.pqr.T)
-        #print("quat",self.quat.T)
         
 
     

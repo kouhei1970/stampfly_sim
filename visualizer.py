@@ -5,38 +5,6 @@ import numpy as np
 import cv2
 import os
 
-class render_bak():
-    def __init__(self, fps):
-        #3D描画setteng
-        self.scene = canvas(title="StampFly Simulation", width=600, height=600)
-        #Tハンドルを作成
-        self.frame = box( size=vec(0.14, 0.14, 0.02), pos=vec(0.0, 0.0, 0.0), color=color.green )
-        self.prop1 = cylinder( radius=0.127/2, length = 0.005, axis=vec(0, 0, 1), pos=vec(0.07,  0.07, -0.021), color=color.yellow )
-        self.prop2 = cylinder( radius=0.127/2, length = 0.005, axis=vec(0, 0, 1), pos=vec(0.07, -0.07, -0.021), color=color.yellow )
-        self.prop3 = cylinder( radius=0.127/2, length = 0.005, axis=vec(0, 0, 1), pos=vec(-0.07,-0.07, -0.021), color=color.yellow )
-        self.prop4 = cylinder( radius=0.127/2, length = 0.005, axis=vec(0, 0, 1), pos=vec(-0.07, 0.07, -0.021), color=color.yellow )
-        self.drone = compound( [self.frame, self.prop1, self.prop2, self.prop3, self.prop4] )
-        self.drone.pos = vec(0.0, 0.0, 0.0)
-        self.drone.axis = vec(1,0,0)
-
-        #Cameraの設定
-        self.scene.autoscale = False  # オートスケールを無効
-        #scene.center = vector(0, 0, 0)  # カメラの注視点
-        self.scene.camera.pos = vector(1.0*0.5, 0, -0.5*0.5)  # カメラの位置
-        self.scene.camera.axis = vector(-1.0*0.5, 0, 0.5*0.5)  # カメラの向き
-        self.scene.up=vector(0,0,-1)
-
-        self.fps = fps
-        self.anim_time = 0.0
-        
-    def rendering(self, sim_time, drone):
-        #3D描画
-        if(sim_time > self.anim_time):
-            rate(self.fps)
-            self.drone.axis = vector(drone.body.DCM[0,0], drone.body.DCM[1,0], drone.body.DCM[2,0])
-            self.drone.up = vector(drone.body.DCM[0,1], drone.body.DCM[1,1], drone.body.DCM[2,1])
-            self.anim_time += 1/self.fps
-
 class render():
     def __init__(self, fps):
         # VPythonのシーンを設定
