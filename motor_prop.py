@@ -1,15 +1,27 @@
 import numpy as np
 
 class motor_prop():
-    def __init__(self):
+    def __init__(self, motor_num=1):
         cw = 1
         ccw = -1
         self.omega = 0.0
         self.e = 0.0
         self.i = 0.0
         self.thrust = 0.0
-        self.rotation_dir = cw
-
+        dlt = 0.0001
+        if motor_num == 1:
+            self.rotation_dir = ccw
+            self.location = np.array([[0.025+dlt], [0.025], [0.-0.005]])
+        elif motor_num == 2:
+            self.rotation_dir = cw
+            self.location = np.array([[-0.025], [0.025], [0.-0.005]])
+        elif motor_num == 3:
+            self.rotation_dir = ccw
+            self.location = np.array([[-0.025], [-0.025], [0.-0.005]])
+        elif motor_num == 4:
+            self.rotation_dir = cw
+            self.location = np.array([[0.025], [-0.025], [0.-0.005]])
+        
         #StampFlyのパラメータ
         #回転数と電圧の関係から求めたパラメータ
         self.Am = 5.39e-8
@@ -83,6 +95,9 @@ class motor_prop():
     def set_location(self, x, y, z):
         self.location = np.array([[x], [y], [z]])
 
+    def set_rotation_dir(self, rotation_dir):
+        self.rotation_dir = rotation_dir 
+    
     def step(self, voltage, dt):
         # Runge-Kutta 4th order
         k1 = self.omega_dot(self.omega, voltage)

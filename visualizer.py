@@ -247,7 +247,7 @@ class render():
         zf = drone.body.position[2][0]
         
         #カメラの位置
-        self.xc =  0.5#xf - 0.00 #scene.upが(0,0,-1)のためこれがうまく表示されない。(0,1,0)に変更するとうまくいく
+        self.xc =  -0.5#xf - 0.00 #scene.upが(0,0,-1)のためこれがうまく表示されない。(0,1,0)に変更するとうまくいく
         self.yc =  0#yf - 0.00
         self.zc =  -0.25#zf - 5.0
 

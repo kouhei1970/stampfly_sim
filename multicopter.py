@@ -14,10 +14,10 @@ class multicopter():
     def __init__(self, mass, inersia):
         self.body = rb.rigidbody(mass=mass, inersia=inersia)
         
-        self.mp1 = mp.motor_prop()
-        self.mp2 = mp.motor_prop()
-        self.mp3 = mp.motor_prop()
-        self.mp4 = mp.motor_prop()
+        self.mp1 = mp.motor_prop(1)
+        self.mp2 = mp.motor_prop(2)
+        self.mp3 = mp.motor_prop(3)
+        self.mp4 = mp.motor_prop(4)
         self.motor_prop = [self.mp1, self.mp2, self.mp3, self.mp4]
         self.distuerbance_moment = [4.4e-6, 4.4e-6, 4.e-6]
         self.distuerbance_force = [1e-6, 1e-6, 1e-6]
@@ -41,29 +41,33 @@ class multicopter():
         thrust2 = self.mp2.get_thrust()
         thrust3 = self.mp3.get_thrust()
         thrust4 = self.mp4.get_thrust()
-        armx1 = self.mp1.armx
-        armx2 = self.mp2.armx
-        armx3 = self.mp3.armx
-        armx4 = self.mp4.armx
-        army1 = self.mp1.army
-        army2 = self.mp2.army
-        army3 = self.mp3.army
-        army4 = self.mp4.army
+        #armx1 = self.mp1.armx
+        #armx2 = self.mp2.armx
+        #armx3 = self.mp3.armx
+        #armx4 = self.mp4.armx
+        #army1 = self.mp1.army
+        #army2 = self.mp2.army
+        #army3 = self.mp3.army
+        #army4 = self.mp4.army
         kappa1 = self.mp1.kappa
         kappa2 = self.mp2.kappa
         kappa3 = self.mp3.kappa
         kappa4 = self.mp4.kappa    
         
         #Moment
-        moment_L = -thrust1 * army1 - thrust2 * army2 + thrust3 * army3 + thrust4 * army4    - 1e-5*np.sign(rate_p)*rate_p**2
-        moment_M = thrust1 * armx1 - thrust2 * armx2 - thrust3 * armx3 + thrust4 * armx4     - 1e-5*np.sign(rate_q)*rate_q**2
-        moment_N = thrust1 * kappa1 - thrust2 * kappa2 + thrust3 * kappa3 - thrust4 * kappa4 - 1e-5*np.sign(rate_r)*rate_r**2        
-        
+        #moment_L = -thrust1 * army1 - thrust2 * army2 + thrust3 * army3 + thrust4 * army4    - 1e-5*np.sign(rate_p)*rate_p**2
+        #moment_M = thrust1 * armx1 - thrust2 * armx2 - thrust3 * armx3 + thrust4 * armx4     - 1e-5*np.sign(rate_q)*rate_q**2
+        #moment_N = thrust1 * kappa1 - thrust2 * kappa2 + thrust3 * kappa3 - thrust4 * kappa4 - 1e-5*np.sign(rate_r)*rate_r**2        
+        moment = self.mp1.get_moment() + self.mp2.get_moment() + self.mp3.get_moment() + self.mp4.get_moment()
+        moment_L = moment[0][0] - 1e-5*np.sign(rate_p)*rate_p**2
+        moment_M = moment[1][0] - 1e-5*np.sign(rate_q)*rate_q**2
+        moment_N = moment[2][0] - 1e-5*np.sign(rate_r)*rate_r**2 
+
         #Force
-        thrust = -(thrust1+thrust2+thrust3+thrust4)        
-        fx = gravity_body[0][0] - 2e-2*np.sign(vel_u)*vel_u**2
-        fy = gravity_body[1][0] - 2e-2*np.sign(vel_v)*vel_v**2
-        fz = gravity_body[2][0] + thrust - 2e-2*np.sign(vel_w)*vel_w**2
+        thrust = self.mp1.get_force() + self.mp2.get_force() + self.mp3.get_force() + self.mp4.get_force()
+        fx = thrust[0][0] + gravity_body[0][0] - 2e-2*np.sign(vel_u)*vel_u**2
+        fy = thrust[1][0] + gravity_body[1][0] - 2e-2*np.sign(vel_v)*vel_v**2
+        fz = thrust[2][0] + gravity_body[2][0] - 2e-2*np.sign(vel_w)*vel_w**2
         
         #Add disturbance
         moment_L += np.random.normal(0, self.distuerbance_moment[0])

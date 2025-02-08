@@ -101,7 +101,7 @@ def test_two_rotor():
 
     stampfly.body.set_pqr([[0.0],[0.0],[0.0]])
     stampfly.body.set_uvw([[0.0],[0.0],[0.0]])
-    dist = 1e-4
+    dist = 0*1e-4
     stampfly.set_duturbance(moment=[dist, dist, dist], force=[dist, dist, dist])
     battery_voltage = 3.7
     nominal_voltage = stampfly.motor_prop[0].equilibrium_voltage(Weight/4)
@@ -191,7 +191,7 @@ def test_three_rotor():
 
     stampfly.body.set_pqr([[0.0],[0.0],[0.0]])
     stampfly.body.set_uvw([[0.0],[0.0],[0.0]])
-    dist = 1e-4
+    dist = 0*1e-4
     stampfly.set_duturbance(moment=[dist, dist, dist], force=[dist, dist, dist])
     battery_voltage = 3.7
     nominal_voltage = stampfly.motor_prop[0].equilibrium_voltage(Weight/4)
@@ -213,7 +213,7 @@ def test_three_rotor():
     POS.append(stampfly.body.position.copy())
 
     while t < 10.0:
-        if t<2.0:
+        if t<5.0:
             voltage = [nominal_voltage, nominal_voltage, nominal_voltage, nominal_voltage]
         else:
             voltage = [0.0, damage_voltage, damage_voltage, damage_voltage]
@@ -463,4 +463,4 @@ def test_stampfly_motor():
 
 if __name__ == "__main__":
     np.random.seed(1)
-    test_three_rotor()
+    test_two_rotor()
