@@ -28,6 +28,9 @@ class multicopter():
         self.distuerbance_force = force
 
     def force_moment(self):
+        vel_u = self.body.uvw[0][0]
+        vel_v = self.body.uvw[1][0]
+        vel_w = self.body.uvw[2][0]
         rate_p = self.body.pqr[0][0]
         rate_q = self.body.pqr[1][0]
         rate_r = self.body.pqr[2][0]
@@ -52,15 +55,15 @@ class multicopter():
         kappa4 = self.mp4.kappa    
         
         #Moment
-        moment_L = -thrust1 * army1 - thrust2 * army2 + thrust3 * army3 + thrust4 * army4
-        moment_M = thrust1 * armx1 - thrust2 * armx2 - thrust3 * armx3 + thrust4 * armx4
+        moment_L = -thrust1 * army1 - thrust2 * army2 + thrust3 * army3 + thrust4 * army4    - 1e-5*np.sign(rate_p)*rate_p**2
+        moment_M = thrust1 * armx1 - thrust2 * armx2 - thrust3 * armx3 + thrust4 * armx4     - 1e-5*np.sign(rate_q)*rate_q**2
         moment_N = thrust1 * kappa1 - thrust2 * kappa2 + thrust3 * kappa3 - thrust4 * kappa4 - 1e-5*np.sign(rate_r)*rate_r**2        
         
         #Force
         thrust = -(thrust1+thrust2+thrust3+thrust4)        
-        fx = gravity_body[0][0]
-        fy = gravity_body[1][0]
-        fz = gravity_body[2][0] + thrust
+        fx = gravity_body[0][0] - 2e-2*np.sign(vel_u)*vel_u**2
+        fy = gravity_body[1][0] - 2e-2*np.sign(vel_v)*vel_v**2
+        fz = gravity_body[2][0] + thrust - 2e-2*np.sign(vel_w)*vel_w**2
         
         #Add disturbance
         moment_L += np.random.normal(0, self.distuerbance_moment[0])

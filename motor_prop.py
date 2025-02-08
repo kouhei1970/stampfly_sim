@@ -2,12 +2,15 @@ import numpy as np
 
 class motor_prop():
     def __init__(self):
+        cw = 1
+        ccw = -1
         self.omega = 0.0
         self.e = 0.0
         self.i = 0.0
         self.thrust = 0.0
+        self.rotation_dir = cw
 
-        #実験値
+        #StampFlyのパラメータ
         #回転数と電圧の関係から求めたパラメータ
         self.Am = 5.39e-8
         self.Bm = 6.33e-4
@@ -60,8 +63,25 @@ class motor_prop():
     def get_torque(self):
         return self.Cq * self.omega**2
 
+    def get_force(self):
+        return np.array([[0.0], [0.0], [-self.get_thrust()]])
+
+    def get_moment(self):
+        moment = np.array([[0.0], [0.0], [-self.rotation_dir * self.get_torque()]])
+        moment += np.cross(self.location, np.array([[0.0], [0.0], [-self.get_thrust()]]) , axis=0)
+        return moment
+
+    def get_force_moment(self):
+        force = np.array([[0.0], [0.0], [-self.get_thrust()]])
+        moment = np.array([[0.0], [0.0], [-self.rotation_dir * self.get_torque()]])
+        moment += np.cross(self.location, np.array([[0.0], [0.0], [-self.get_thrust()]]) , axis=0)
+        return force, moment
+
     def set_anguler_velocity(self, omega):
         self.omega = omega
+
+    def set_location(self, x, y, z):
+        self.location = np.array([[x], [y], [z]])
 
     def step(self, voltage, dt):
         # Runge-Kutta 4th order
