@@ -11,16 +11,16 @@ class motor_prop():
         dlt = 0.0001
         if motor_num == 1:
             self.rotation_dir = ccw
-            self.location = np.array([[0.025], [0.025], [-0.005]])
+            self.location = np.array([[0.025], [0.025], [0.005]])
         elif motor_num == 2:
             self.rotation_dir = cw
-            self.location = np.array([[-0.025], [0.025], [-0.005]])
+            self.location = np.array([[-0.025], [0.025], [0.005]])
         elif motor_num == 3:
             self.rotation_dir = ccw
-            self.location = np.array([[-0.025], [-0.025], [-0.005]])
+            self.location = np.array([[-0.025], [-0.025], [0.005]])
         elif motor_num == 4:
             self.rotation_dir = cw
-            self.location = np.array([[0.025], [-0.025], [-0.005]])
+            self.location = np.array([[0.025], [-0.025], [0.005]])
         
         #StampFlyのパラメータ
         #回転数と電圧の関係から求めたパラメータ

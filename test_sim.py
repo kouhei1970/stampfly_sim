@@ -3,8 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from visualizer import *
 from vpython import *
-import serial
-import struct
+
 
 def test_template():
     mass = 0.035
@@ -50,7 +49,108 @@ def test_template():
         EULER.append(stampfly.body.euler.copy())
         POS.append(stampfly.body.position.copy())
 
+    if True:
+        plt.subplot(4,1,1)
+        plt.plot(T, UVW[:,0,0], label='u')
+        plt.plot(T, UVW[:,1,0], label='v')
+        plt.plot(T, UVW[:,2,0], label='w')
+        plt.legend()
+        plt.grid()
+        plt.xlabel('Time(s)')
+        plt.ylabel('uvw(m/s)')
 
+        plt.subplot(4,1,2)
+        plt.plot(T, PQR[:,0,0], label='P')
+        plt.plot(T, PQR[:,1,0], label='Q')
+        plt.plot(T, PQR[:,2,0], label='R')
+        plt.legend()
+        plt.grid()
+        plt.xlabel('Time(s)')
+        plt.ylabel('PQR(rad/s)')
+
+        plt.subplot(4,1,3)
+        plt.plot(T, EULER[:,0,0], label='phi')
+        plt.plot(T, EULER[:,1,0], label='theta')
+        plt.plot(T, EULER[:,2,0], label='psi')
+        plt.legend()
+        plt.grid()
+        plt.xlabel('Time(s)')
+        plt.ylabel('Euler angle(rad)')
+
+        plt.subplot(4,1,4)
+        plt.plot(T, POS[:,0,0], label='X')
+        plt.plot(T, POS[:,1,0], label='Y')
+        plt.plot(T, POS[:,2,0], label='Z')
+        plt.legend()
+        plt.grid()
+        plt.xlabel('Time(s)')
+        plt.ylabel('Position(m)')
+
+        plt.show()
+
+def flight_sim():
+    mass = 0.035
+    Weight = mass * 9.81
+    stampfly = mc.multicopter(mass= mass, inersia=[[9.16e-6, 0.0, 0.0],[0.0, 13.3e-6, 0.0],[0.0, 0.0, 20.4e-6]])
+    Render=render(60)
+    t =0.0
+    h = 0.001
+
+    stampfly.body.set_pqr([[0.0],[0.0],[0.0]])
+    stampfly.body.set_uvw([[0.0],[0.0],[0.0]])
+    stampfly.set_duturbance(moment=[0.0, 0.0, 0.0], force=[0.0, 0.0, 0.0])
+    battery_voltage = 3.7
+    nominal_voltage = stampfly.motor_prop[0].equilibrium_voltage(Weight/4)
+    damage_voltage = stampfly.motor_prop[0].equilibrium_voltage(Weight/2)
+    nominal_anguler_velocity = stampfly.motor_prop[0].equilibrium_anguler_velocity(Weight/4)
+    stampfly.mp1.omega = nominal_anguler_velocity
+    stampfly.mp2.omega = nominal_anguler_velocity
+    stampfly.mp3.omega = nominal_anguler_velocity
+    stampfly.mp4.omega = nominal_anguler_velocity
+    T=[]
+    PQR=[]
+    UVW=[]
+    EULER=[]
+    POS=[]
+    T.append(t)
+    PQR.append(stampfly.body.pqr.copy())
+    UVW.append(stampfly.body.uvw.copy())
+    EULER.append(stampfly.body.euler.copy())
+    POS.append(stampfly.body.position.copy())
+
+    delta_roll = 0.0
+    delta_pitch = 0.0
+    delta_yaw = 0.0
+
+    while t < 10.0:
+        fr = nominal_voltage + delta_roll + delta_pitch + delta_yaw
+        fl = nominal_voltage - delta_roll + delta_pitch - delta_yaw
+        rr = nominal_voltage + delta_roll - delta_pitch - delta_yaw
+        rl = nominal_voltage - delta_roll - delta_pitch + delta_yaw
+        voltage = [fr, rr, rl, fl]
+        stampfly.step(voltage, h) 
+        key=Render.rendering(t, stampfly)
+        if key == 'up':
+            delta_pitch -= 0.0001
+        elif key == 'down':
+            delta_pitch += 0.0001
+        elif key == 'right':
+            delta_yaw += 0.0001
+        elif key == 'left':
+            delta_yaw -= 0.0001
+            
+        t += h
+        T.append(t)
+        PQR.append(stampfly.body.pqr.copy())
+        UVW.append(stampfly.body.uvw.copy())
+        EULER.append(stampfly.body.euler.copy())
+        POS.append(stampfly.body.position.copy())
+
+    T=np.array(T)
+    EULER=np.array(EULER)
+    PQR=np.array(PQR)
+    UVW=np.array(UVW)
+    POS=np.array(POS)
 
     if True:
         plt.subplot(4,1,1)
@@ -91,6 +191,7 @@ def test_template():
 
         plt.show()
 
+
 def test_two_rotor():
     mass = 0.035
     Weight = mass * 9.81
@@ -101,7 +202,7 @@ def test_two_rotor():
 
     stampfly.body.set_pqr([[0.0],[0.0],[0.0]])
     stampfly.body.set_uvw([[0.0],[0.0],[0.0]])
-    dist = 0*1e-4
+    dist = 1e-4
     stampfly.set_duturbance(moment=[dist, dist, dist], force=[dist, dist, dist])
     battery_voltage = 3.7
     nominal_voltage = stampfly.motor_prop[0].equilibrium_voltage(Weight/4)
@@ -140,7 +241,6 @@ def test_two_rotor():
     PQR=np.array(PQR)
     EULER=np.array(EULER)
     POS=np.array(POS)
-
 
     if True:
         plt.subplot(4,1,1)
@@ -191,7 +291,7 @@ def test_three_rotor():
 
     stampfly.body.set_pqr([[0.0],[0.0],[0.0]])
     stampfly.body.set_uvw([[0.0],[0.0],[0.0]])
-    dist = 0*1e-4
+    dist = 1e-4
     stampfly.set_duturbance(moment=[dist, dist, dist], force=[dist, dist, dist])
     battery_voltage = 3.7
     nominal_voltage = stampfly.motor_prop[0].equilibrium_voltage(Weight/4)
@@ -213,7 +313,7 @@ def test_three_rotor():
     POS.append(stampfly.body.position.copy())
 
     while t < 10.0:
-        if t<5.0:
+        if t<2.0:
             voltage = [nominal_voltage, nominal_voltage, nominal_voltage, nominal_voltage]
         else:
             voltage = [0.0, damage_voltage, damage_voltage, damage_voltage]
@@ -230,7 +330,6 @@ def test_three_rotor():
     PQR=np.array(PQR)
     EULER=np.array(EULER)
     POS=np.array(POS)
-
 
     if True:
         plt.subplot(4,1,1)
@@ -263,7 +362,7 @@ def test_three_rotor():
         plt.subplot(4,1,4)
         plt.plot(T, POS[:,0,0], label='X')
         plt.plot(T, POS[:,1,0], label='Y')
-        plt.plot(T, POS[:,2,0], label='Z')
+        #plt.plot(T, POS[:,2,0], label='Z')
         plt.legend()
         plt.grid()
         plt.xlabel('Time(s)')
@@ -271,7 +370,7 @@ def test_three_rotor():
 
         plt.show()
 
-def test_sim():
+def test_ringworld():
     mass = 0.035
     Weight = mass * 9.81
     stampfly = mc.multicopter(mass= mass, inersia=[[9.16e-6, 0.0, 0.0],[0.0, 13.3e-6, 0.0],[0.0, 0.0, 20.4e-6]])
@@ -317,7 +416,7 @@ def test_sim():
             (0, 1, 0), (1, 1, 0), (1, 0, 0),(-1, 1, 0), 
             (0, 1, 0), (0, 1, 0), (0, 1, 0), (0, 1, 0)]
 
-    vel_ref = 4.0
+    vel_ref = 2.0
     uvw_ref = [[[vel_ref],[0.0],[0.0]], [[vel_ref],[0.0],[0.0]], [[vel_ref],[0.0],[0.0]], [[vel_ref],[0.0],[0.0]],
                [[vel_ref],[0.0],[0.0]], [[vel_ref],[0.0],[0.0]], [[vel_ref],[0.0],[0.0]], [[vel_ref],[0.0],[0.0]],
                [[vel_ref],[0.0],[0.0]], [[vel_ref],[0.0],[0.0]], [[vel_ref],[0.0],[0.0]], [[vel_ref],[0.0],[0.0]],
@@ -325,10 +424,10 @@ def test_sim():
     
     radius = 2.0
     r_ref = vel_ref/radius
-    pqr_ref = [[[0.0],[0.0],[0.0]], [[0.0],[0.0],[0.0]], [[0.0],[0.0],[r_ref]], [[0.0],[0.0],[r_ref]],
-               [[0.0],[0.0],[r_ref]], [[0.0],[0.0],[r_ref]], [[0.0],[0.0],[-r_ref]], [[0.0],[0.0],[-r_ref]],
-               [[0.0],[0.0],[0.0]], [[0.0],[0.0],[r_ref]], [[0.0],[0.0],[r_ref]], [[0.0],[0.0],[r_ref]],
-               [[0.0],[0.0],[r_ref]], [[0.0],[0.0],[0.0]], [[0.0],[0.0],[0.0]], [[0.0],[0.0],[0.0]]]
+    pqr_ref = [[[0.0],[0.0],[0.0]], [[0.0],[0.0],[0.0]], [[0.0],[0.0],[-r_ref]], [[0.0],[0.0],[-r_ref]],
+               [[0.0],[0.0],[-r_ref]], [[0.0],[0.0],[-r_ref]], [[0.0],[0.0],[r_ref]], [[0.0],[0.0],[r_ref]],
+               [[0.0],[0.0],[0.0]], [[0.0],[0.0],[-r_ref]], [[0.0],[0.0],[-r_ref]], [[0.0],[0.0],[-r_ref]],
+               [[0.0],[0.0],[-r_ref]], [[0.0],[0.0],[0.0]], [[0.0],[0.0],[0.0]], [[0.0],[0.0],[0.0]]]
                 
     flag = 0
     index = 0
@@ -346,7 +445,7 @@ def test_sim():
             index += 1
             if index > 15:
                 index = 15
-            print(index)
+            #print(index)
             forward_vec = np.array(ring_position[index]) - stampfly.body.position.T[0]
         stampfly.step(voltage, h)
         t += h
@@ -406,61 +505,7 @@ def test_sim():
 
         plt.show()
 
-
-def test_stampfly_motor():
-    stampfly = mc.multicopter()
-
-    t =0.0
-    h = 0.001
-    OMEGA=[]
-    CURRENT=[]
-    THRUST=[]
-    T=[]
-    OMEGA.append(stampfly.mp1.omega)
-    CURRENT.append(stampfly.mp1.i)
-    THRUST.append(stampfly.mp1.thrust)
-    T.append(t)
-
-    while t < 0.4:
-        if t<0.2:
-            voltage = 3.7*0.5
-        else:
-            voltage = 3.7*0.6
-            
-        stampfly.mp1.step(voltage, h)
-        t += h
-        OMEGA.append(stampfly.mp1.omega)
-        CURRENT.append(stampfly.mp1.i)
-        THRUST.append(stampfly.mp1.thrust)
-        T.append(t)
-
-        
-    
-    OMEGA = np.array(OMEGA)
-    CURRENT = np.array(CURRENT)
-    THRUST = np.array(THRUST)
-    T = np.array(T)
-
-    #subplotする
-    plt.subplot(3,1,1)
-    plt.plot(T, CURRENT)
-    plt.grid()
-    plt.xlabel('Time(s)')
-    plt.ylabel('Current(A)')
-    plt.subplot(3,1,2)
-    plt.plot(T, 1000*THRUST/9.81)
-    plt.grid()
-    plt.xlabel('Time(s)')
-    plt.ylabel('Thrust(gf)')
-    plt.subplot(3,1,3)
-    plt.plot(T, OMEGA)
-    plt.grid()
-    plt.xlabel('Time(s)')
-    plt.ylabel('Omega(rad/s)')
-    plt.show()
-
-    print(stampfly.mp1.omega)
-
 if __name__ == "__main__":
     np.random.seed(1)
-    test_two_rotor()
+    #test_three_rotor()
+    test_ringworld()
