@@ -34,7 +34,6 @@ class multicopter():
     '''
     def __init__(self, mass, inersia):
         self.body = rb.rigidbody(mass=mass, inersia=inersia)
-        
         self.mp1 = mp.motor_prop(1)
         self.mp2 = mp.motor_prop(2)
         self.mp3 = mp.motor_prop(3)
