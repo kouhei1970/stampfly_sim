@@ -21,13 +21,26 @@
 ### PlatformIO
 
 ```
+cd
 mkdir -p tmp/pio
 cd tmp/pio
 wget -O get-platformio.py https://raw.githubusercontent.com/platformio/platformio-core-installer/master/get-platformio.py
 python3 get-platformio.py
 ```
 
-### ATOM JoyStick 
+### ATOM JoyStick
+
+ATOMS3をUSBケーブルでPCに接続する
+
+```
+cd
+. .platformio/penv/bin/activate
+mkdir -p tmp/github
+cd tmp/github
+git clone https://github.com/kouhei1970/atomjoystick_for_flighte_simulator.git
+cd atomjoystick_for_flighte_simulator
+pio run --target upload
+```
 
 ## Install and Run
 ```
