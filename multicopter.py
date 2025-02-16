@@ -43,10 +43,22 @@ class multicopter():
         self.distuerbance_force = [1e-6, 1e-6, 1e-6]
         self.battery = bt.battery()
 
-    def set_duturbance(self, moment, force):
+    def set_disturbance(self, moment, force):
         self.distuerbance_moment = moment
         self.distuerbance_force = force
 
+    def set_pqr(self, pqr):
+        pqr = np.array(pqr)
+        self.body.pqr = pqr
+    
+    def set_uvw(self, uvw):
+        uvw = np.array(uvw)
+        self.body.uvw = uvw
+
+    def set_euler(self, euler):
+        euler = np.array(euler)
+        self.body.set_euler(euler)
+        
     def force_moment(self):
         vel_u = self.body.uvw[0][0]
         vel_v = self.body.uvw[1][0]

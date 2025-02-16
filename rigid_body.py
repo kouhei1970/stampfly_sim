@@ -126,6 +126,7 @@ class rigidbody():
         return uvw
     
     def euler2quat(self, euler):
+        euler = np.array(euler)
         phi = euler[0][0]
         tht = euler[1][0]
         psi = euler[2][0]
@@ -161,13 +162,22 @@ class rigidbody():
     def normalize_quat(self):
         self.quat = self.quat/np.linalg.norm(self.quat)
 
-
     def set_pqr(self, pqr):
         self.pqr = np.array(pqr)
     
     def set_uvw(self, uvw):
         self.uvw = np.array(uvw)
+
+    def set_quat(self, quat):
+        self.quat = np.array(quat)
+        self.dcm = self.quat_dcm(self.quat)
+        self.euler = self.quat2euler(self.quat)
     
+    def set_euler(self, euler):
+        self.euler = np.array(euler)
+        self.quat = self.euler2quat(self.euler)
+        self.dcm = self.euler_dcm(self.euler)
+
     def step(self, force, torque, dt):
         #RK4で剛体の運動方程式を解くとともに,グローバル座標系の速度,位置,DCMを更新する
         #1. k1を求める

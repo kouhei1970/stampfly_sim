@@ -38,7 +38,7 @@ class render():
         self.anim_time = 0.0
         self.frame_num = 0
         self.keyname = ''
-
+        
         #Cameraの設定
         self.camera_init()
 
@@ -68,7 +68,7 @@ class render():
         for pos,axis in zip(position,axis):
             ring(pos=vec(*pos), axis=vec(*axis), radius = 0.3, thickness = 0.015, color=color.purple)
 
-        Ring_Num = 500
+        Ring_Num = 50
         rings=[]
         for i in range(Ring_Num):
             angle=np.random.randint(0,90)
@@ -95,7 +95,7 @@ class render():
         # 背景のボックスにテクスチャを適用
         #self.make_texture()
         background = box(pos=vector(0.0, 0.0, 0.0), size=vector(0.1, 0.1, 120.0), texture="checkerboard.png")        
-        background.pos = vec(0.0, 0.0, 40.0)
+        background.pos = vec(0.0, 0.0, 10.0)
         background.axis = vec(0.0, 120.0, 0.0)#物体の回転軸
         angle = 0
         x=sin(radians(angle))
@@ -229,7 +229,7 @@ class render():
         
         #カメラの位置
         self.xc =  xf - 0.00 #scene.upが(0,0,-1)のためこれがうまく表示されない。(0,1,0)に変更するとうまくいく
-        self.yc =  yf - 1.0
+        self.yc =  yf - 0.2
         self.zc =  zf - 0.0
 
         #カメラの向き
@@ -253,7 +253,7 @@ class render():
         self.scene.up=vector(0,1,0)
         
         #FOVの設定
-        scene_range = 0.05
+        scene_range = 0.2
         self.scene.fov = 2*atan2(scene_range, d)
 
         
@@ -265,9 +265,9 @@ class render():
         zf = drone.body.position[2][0]
         
         #カメラの位置
-        self.xc =  0#xf - 0.00 #scene.upが(0,0,-1)のためこれがうまく表示されない。(0,1,0)に変更するとうまくいく
+        self.xc =  -2#xf - 0.00 #scene.upが(0,0,-1)のためこれがうまく表示されない。(0,1,0)に変更するとうまくいく
         self.yc =  0#yf - 0.00
-        self.zc =  - 5.0
+        self.zc =  -5
 
         #カメラの向き
         axis_x = xf - self.xc
@@ -291,12 +291,13 @@ class render():
 
         #FOVの設定
         if t < 1000.0:
-            scene_range = 0.4
+            scene_range = 0.2
         else:
             scene_range = 0.5 + (4.0 * t/16.0)
         #if scene_range > 3.0:
         #    scene_range = 3.0
         #    scene_range = 0.3
+        d = sqrt(2**2 + 0**2 + 5**2)
         self.scene.fov = 2*atan2(scene_range, d)
 
 
@@ -309,9 +310,17 @@ class render():
         direction = drone.body.euler[2][0]
 
         #カメラの位置
-        self.xc =  xf - 5*cos(direction)
-        self.yc =  yf - 5*sin(direction)
-        self.zc =  zf - 0.2
+        pattern = 0
+        if pattern == 0:
+            #後ろから追いかける
+            self.xc =  xf - 5*cos(direction)
+            self.yc =  yf - 5*sin(direction)
+            self.zc =  zf - 0.2
+        elif pattern == 1:
+            #上から追いかける
+            self.xc =  xf - 5
+            self.yc =  yf - 0.00
+            self.zc =  zf-5
 
         #カメラの向き
         axis_x = xf - self.xc
@@ -334,27 +343,23 @@ class render():
         self.scene.up=vector(0,0,-1)
 
         #FOVの設定
-        scene_range = 0.5
+        scene_range = 0.2
         self.scene.fov = 2*atan2(scene_range, d)
 
 
     def rendering(self, sim_time, drone):
-        #3D描画
-        
-        if(sim_time > self.anim_time):
+        #3D描画        
+        if(sim_time >= self.anim_time):
             rate(self.fps)
             self.copter.pos = vector(*drone.body.position )
             axis_x = vector(drone.body.DCM[0,0], drone.body.DCM[1,0], drone.body.DCM[2,0])
             axis_z = vector(drone.body.DCM[0,2], drone.body.DCM[1,2], drone.body.DCM[2,2])
-            print(axis_x, axis_z)
             self.copter.axis = axis_x
             self.copter.up = axis_z
             self.anim_time += 1/self.fps
-            #self.fix_camera_setting(drone, t=sim_time)
             self.follow_camera_setting(drone, t=sim_time)            
+            #self.fix_camera_setting(drone, t=sim_time)
             self.timer_text.text = f"Elapsed Time: {sim_time:.1f} s"  # 表示を更新
-            print(drone.body.quat_dcm(drone.body.quat))
-            print(drone.body.euler_dcm(drone.body.euler))
         return self.keyname
             
             

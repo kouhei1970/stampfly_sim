@@ -25,7 +25,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from visualizer import *
 from vpython import *
-
+from pid import PID
+from joystick import *
 
 def test_template():
     mass = 0.035
@@ -115,16 +116,20 @@ def flight_sim():
     Weight = mass * 9.81
     stampfly = mc.multicopter(mass= mass, inersia=[[9.16e-6, 0.0, 0.0],[0.0, 13.3e-6, 0.0],[0.0, 0.0, 20.4e-6]])
     Render=render(60)
+    joystick = Joystick()
+    joystick.open()
     t =0.0
     h = 0.001
-
-    stampfly.body.set_pqr([[0.0],[0.0],[0.0]])
-    stampfly.body.set_uvw([[0.0],[0.0],[0.0]])
-    stampfly.set_duturbance(moment=[0.0, 0.0, 0.0], force=[0.0, 0.0, 0.0])
     battery_voltage = 3.7
+
+    stampfly.set_pqr([[0.0],[0.0],[0.0]])
+    stampfly.set_uvw([[0.0],[0.0],[0.0]])
+    stampfly.set_euler([[0],[0],[0]])
     nominal_voltage = stampfly.motor_prop[0].equilibrium_voltage(Weight/4)
     damage_voltage = stampfly.motor_prop[0].equilibrium_voltage(Weight/2)
     nominal_anguler_velocity = stampfly.motor_prop[0].equilibrium_anguler_velocity(Weight/4)
+    dist = 1e-6
+    stampfly.set_disturbance(moment=[dist, dist, dist], force=[dist, dist, dist])
     stampfly.mp1.omega = nominal_anguler_velocity
     stampfly.mp2.omega = nominal_anguler_velocity
     stampfly.mp3.omega = nominal_anguler_velocity
@@ -140,27 +145,59 @@ def flight_sim():
     EULER.append(stampfly.body.euler.copy())
     POS.append(stampfly.body.position.copy())
 
+    delta_voltage = 0.0
     delta_roll = 0.0
     delta_pitch = 0.0
     delta_yaw = 0.0
+    roll_ref = 0.0
+    pitch_ref = 0.0
+    yaw_ref = 0.0
+    
 
-    while t < 10.0:
-        fr = nominal_voltage + delta_roll + delta_pitch + delta_yaw
-        fl = nominal_voltage - delta_roll + delta_pitch - delta_yaw
-        rr = nominal_voltage + delta_roll - delta_pitch - delta_yaw
-        rl = nominal_voltage - delta_roll - delta_pitch + delta_yaw
-        voltage = [fr, rr, rl, fl]
-        stampfly.step(voltage, h) 
-        key=Render.rendering(t, stampfly)
-        if key == 'up':
-            delta_pitch -= 0.0001
-        elif key == 'down':
-            delta_pitch += 0.0001
-        elif key == 'right':
-            delta_yaw += 0.0001
-        elif key == 'left':
-            delta_yaw -= 0.0001
+    control_time = 0.0
+    control_interval = 1e-2
+
+    roll_pid = PID(0.1, 0.0, 0.0)
+    pitch_pid = PID(0.1, 0.0, 0.0)
+    yaw_pid = PID(0.1, 0.0, 0.0)
+
+    while t < 100.0:
+        rate_p = stampfly.body.pqr[0][0]
+        rate_q = stampfly.body.pqr[1][0]
+        rate_r = stampfly.body.pqr[2][0]
+        phi = stampfly.body.euler[0][0]
+        theta = stampfly.body.euler[1][0]
+        psi = stampfly.body.euler[2][0]
+        
+        joydata=joystick.read()
+        if joydata is not None:
+            thrust = -(joydata[4]-127)/127.0
+            roll = (joydata[1]-127)/127.0*np.pi
+            pitch = (joydata[2]-127)/127.0*np.pi
+            yaw = (joydata[3]-127)/127.0*np.pi
+            #print(roll, pitch, yaw)
+            delta_voltage = 0.5*thrust
+            roll_ref = roll
+            pitch_ref = pitch
+            yaw_ref = yaw
+        
+        control_on = True
+        if t >= control_time and control_on:
+            control_time += control_interval
+            delta_roll = roll_pid.update(roll_ref, rate_p, control_interval)
+            delta_pitch = pitch_pid.update(pitch_ref, rate_q, control_interval)
+            delta_yaw = yaw_pid.update(yaw_ref, rate_r, control_interval)
             
+        voltage = nominal_voltage + delta_voltage
+        fr = voltage - delta_roll + delta_pitch + delta_yaw# - 0.01*np.cos(psi - 10*np.pi/180)
+        fl = voltage + delta_roll + delta_pitch - delta_yaw# - 0.01*np.cos(psi - 10*np.pi/180)
+        rr = voltage - delta_roll - delta_pitch - delta_yaw# + 0.01*np.cos(psi - 10*np.pi/180)
+        rl = voltage + delta_roll - delta_pitch + delta_yaw# + 0.01*np.cos(psi - 10*np.pi/180)
+        voltage = [fr, rr, rl, fl]
+        #print(voltage)
+        stampfly.step(voltage, h)
+        key=Render.rendering(t, stampfly)
+
         t += h
         T.append(t)
         PQR.append(stampfly.body.pqr.copy())
@@ -384,7 +421,7 @@ def test_three_rotor():
         plt.subplot(4,1,4)
         plt.plot(T, POS[:,0,0], label='X')
         plt.plot(T, POS[:,1,0], label='Y')
-        #plt.plot(T, POS[:,2,0], label='Z')
+        plt.plot(T, POS[:,2,0], label='Z')
         plt.legend()
         plt.grid()
         plt.xlabel('Time(s)')
@@ -530,4 +567,5 @@ def test_ringworld():
 if __name__ == "__main__":
     np.random.seed(1)
     #test_three_rotor()
-    test_ringworld()
+    #test_ringworld()
+    flight_sim()
