@@ -43,6 +43,10 @@ pio run --target upload
 ```
 
 ## Install and Run
+AtomJoystickはUSBケーブルでPCに接続しておく。
+操縦モードはモード３
+制御は簡単な角速度制御モードのみ（アクロモード）
+
 ```
 mkdir github
 cd github
