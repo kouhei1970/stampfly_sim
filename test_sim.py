@@ -157,8 +157,8 @@ def flight_sim():
     control_time = 0.0
     control_interval = 1e-2
 
-    roll_pid = PID(0.1, 2.0, 0.002)
-    pitch_pid = PID(0.1, 1.0, 0.003)
+    roll_pid = PID(0.2, 2.0, 0.002)
+    pitch_pid = PID(0.2, 1.0, 0.003)
     yaw_pid = PID(0.5, 2.0, 0.002)
 
     while t < 50.0:
