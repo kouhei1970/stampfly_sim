@@ -20,6 +20,12 @@
 
 ### PlatformIO
 
+```
+mkdir -p tmp/pio
+cd tmp/pio
+wget -O get-platformio.py https://raw.githubusercontent.com/platformio/platformio-core-installer/master/get-platformio.py
+python3 get-platformio.py
+```
 
 ### ATOM JoyStick 
 
