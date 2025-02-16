@@ -357,8 +357,8 @@ class render():
             self.copter.axis = axis_x
             self.copter.up = axis_z
             self.anim_time += 1/self.fps
-            self.follow_camera_setting(drone, t=sim_time)            
-            #self.fix_camera_setting(drone, t=sim_time)
+            #self.follow_camera_setting(drone, t=sim_time)            
+            self.fix_camera_setting(drone, t=sim_time)
             self.timer_text.text = f"Elapsed Time: {sim_time:.1f} s"  # 表示を更新
         return self.keyname
             
