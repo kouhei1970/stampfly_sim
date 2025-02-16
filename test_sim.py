@@ -161,7 +161,7 @@ def flight_sim():
     pitch_pid = PID(0.1, 1.0, 0.003)
     yaw_pid = PID(0.5, 2.0, 0.002)
 
-    while t < 10.0:
+    while t < 50.0:
         rate_p = stampfly.body.pqr[0][0]
         rate_q = stampfly.body.pqr[1][0]
         rate_r = stampfly.body.pqr[2][0]
