@@ -172,9 +172,9 @@ def flight_sim():
         joydata=joystick.read()
         if joydata is not None:
             thrust = -(joydata[4]-127)/127.0
-            roll = (joydata[1]-127)/127.0*np.pi/4
-            pitch = (joydata[2]-127)/127.0*np.pi/4
-            yaw = (joydata[3]-127)/127.0*np.pi/4
+            roll = (joydata[1]-127)/127.0*np.pi/8
+            pitch = (joydata[2]-127)/127.0*np.pi/8
+            yaw = (joydata[3]-127)/127.0*np.pi/8
             #print(roll, pitch, yaw)
             delta_voltage = 0.5*thrust
             roll_ref = roll

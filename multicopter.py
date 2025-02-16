@@ -78,9 +78,9 @@ class multicopter():
 
         #Force
         thrust = self.mp1.get_force() + self.mp2.get_force() + self.mp3.get_force() + self.mp4.get_force()
-        fx = thrust[0][0] + gravity_body[0][0] - 0.5e0*np.sign(vel_u)*vel_u**2
-        fy = thrust[1][0] + gravity_body[1][0] - 0.5e0*np.sign(vel_v)*vel_v**2
-        fz = thrust[2][0] + gravity_body[2][0] - 0.5e0*np.sign(vel_w)*vel_w**2
+        fx = thrust[0][0] + gravity_body[0][0] - 0.1e0*np.sign(vel_u)*vel_u**2
+        fy = thrust[1][0] + gravity_body[1][0] - 0.1e0*np.sign(vel_v)*vel_v**2
+        fz = thrust[2][0] + gravity_body[2][0] - 0.1e0*np.sign(vel_w)*vel_w**2
         
         #Add disturbance
         moment_L += np.random.normal(0, self.distuerbance_moment[0])
