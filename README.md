@@ -3,6 +3,9 @@
 ## Dependency
 
 ### VPython
+シミュレーションの可視化にVPythonを使用している。
+インストール方法は何種類かある
+
 ```conda install -c vpython vpython```
  or
  ```conda install -c conda-forge vpython```
@@ -19,6 +22,7 @@
 ```pip install matplotlib```
 
 ### PlatformIO
+ATOM Joystickをシミュレータのコントローラにするためのプログラムをビルドし書き込む環境をインストールする
 
 ```
 cd
@@ -48,8 +52,9 @@ AtomJoystickはUSBケーブルでPCに接続しておく。
 制御は簡単な角速度制御モードのみ（アクロモード）
 
 ```
-mkdir github
-cd github
+cd
+mkdir -p tmp/github
+cd tmp/github
 git clone https://github.com/kouhei1970/stampfly_sim.git
 cd stampfly_sim
 python test_sim.py
