@@ -121,6 +121,13 @@ def flight_sim():
     t =0.0
     h = 0.001
     battery_voltage = 3.7
+    delta_voltage = 0.0
+    delta_roll = 0.0
+    delta_pitch = 0.0
+    delta_yaw = 0.0
+    roll_ref = 0.0
+    pitch_ref = 0.0
+    yaw_ref = 0.0
 
     stampfly.set_pqr([[0.0],[0.0],[0.0]])
     stampfly.set_uvw([[0.0],[0.0],[0.0]])
@@ -136,32 +143,25 @@ def flight_sim():
     stampfly.mp4.omega = nominal_anguler_velocity
     T=[]
     PQR=[]
+    PQR_REF=[]
     UVW=[]
     EULER=[]
     POS=[]
     T.append(t)
     PQR.append(stampfly.body.pqr.copy())
+    PQR_REF.append(np.array([[roll_ref], [pitch_ref], [yaw_ref]]))
     UVW.append(stampfly.body.uvw.copy())
     EULER.append(stampfly.body.euler.copy())
     POS.append(stampfly.body.position.copy())
 
-    delta_voltage = 0.0
-    delta_roll = 0.0
-    delta_pitch = 0.0
-    delta_yaw = 0.0
-    roll_ref = 0.0
-    pitch_ref = 0.0
-    yaw_ref = 0.0
-    
-
     control_time = 0.0
     control_interval = 1e-2
 
-    roll_pid = PID(0.1, 0.0, 0.0)
-    pitch_pid = PID(0.1, 0.0, 0.0)
-    yaw_pid = PID(0.1, 0.0, 0.0)
+    roll_pid = PID(0.1, 2.0, 0.002)
+    pitch_pid = PID(0.1, 1.0, 0.003)
+    yaw_pid = PID(0.5, 2.0, 0.002)
 
-    while t < 100.0:
+    while t < 10.0:
         rate_p = stampfly.body.pqr[0][0]
         rate_q = stampfly.body.pqr[1][0]
         rate_r = stampfly.body.pqr[2][0]
@@ -172,9 +172,9 @@ def flight_sim():
         joydata=joystick.read()
         if joydata is not None:
             thrust = -(joydata[4]-127)/127.0
-            roll = (joydata[1]-127)/127.0*np.pi
-            pitch = (joydata[2]-127)/127.0*np.pi
-            yaw = (joydata[3]-127)/127.0*np.pi
+            roll = (joydata[1]-127)/127.0*np.pi/4
+            pitch = (joydata[2]-127)/127.0*np.pi/4
+            yaw = (joydata[3]-127)/127.0*np.pi/4
             #print(roll, pitch, yaw)
             delta_voltage = 0.5*thrust
             roll_ref = roll
@@ -201,6 +201,7 @@ def flight_sim():
         t += h
         T.append(t)
         PQR.append(stampfly.body.pqr.copy())
+        PQR_REF.append(np.array([[roll_ref], [pitch_ref], [yaw_ref]]))
         UVW.append(stampfly.body.uvw.copy())
         EULER.append(stampfly.body.euler.copy())
         POS.append(stampfly.body.position.copy())
@@ -208,6 +209,7 @@ def flight_sim():
     T=np.array(T)
     EULER=np.array(EULER)
     PQR=np.array(PQR)
+    PQR_REF=np.array(PQR_REF)
     UVW=np.array(UVW)
     POS=np.array(POS)
 
@@ -225,6 +227,9 @@ def flight_sim():
         plt.plot(T, PQR[:,0,0], label='P')
         plt.plot(T, PQR[:,1,0], label='Q')
         plt.plot(T, PQR[:,2,0], label='R')
+        plt.plot(T, PQR_REF[:,0,0], label='P_ref')
+        plt.plot(T, PQR_REF[:,1,0], label='Q_ref')
+        plt.plot(T, PQR_REF[:,2,0], label='R_ref')
         plt.legend()
         plt.grid()
         plt.xlabel('Time(s)')
