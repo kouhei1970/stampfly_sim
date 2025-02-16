@@ -30,7 +30,7 @@ python3 get-platformio.py
 
 ### ATOM JoyStick
 
-ATOMS3をUSBケーブルでPCに接続する
+ATOMS3をUSBケーブルでPCに接続する. リセットボタンを緑のLEDの点灯を確認するまで長押しする
 
 ```
 cd
