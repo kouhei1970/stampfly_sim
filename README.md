@@ -29,7 +29,7 @@ mkdir github
 cd github
 git clone https://github.com/kouhei1970/stampfly_sim.git
 cd stampfly_sim
-python test_sim
+python test_sim.py
 ```
 
 ## License
