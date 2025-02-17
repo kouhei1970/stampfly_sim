@@ -161,22 +161,27 @@ def flight_sim():
     pitch_pid = PID(0.2, 1.0, 0.003)
     yaw_pid = PID(0.5, 2.0, 0.002)
 
-    while t < 50.0:
+    alt_pid = PID(10.0, 5.0, 5.0)
+
+    while t < 30.0:
         rate_p = stampfly.body.pqr[0][0]
         rate_q = stampfly.body.pqr[1][0]
         rate_r = stampfly.body.pqr[2][0]
         phi = stampfly.body.euler[0][0]
         theta = stampfly.body.euler[1][0]
         psi = stampfly.body.euler[2][0]
+        xi = stampfly.body.position[0][0]
+        yi = stampfly.body.position[1][0]
+        zi = stampfly.body.position[2][0]    
         
         joydata=joystick.read()
         if joydata is not None:
-            thrust = -(joydata[4]-127)/127.0
-            roll = (joydata[1]-127)/127.0*np.pi/8
-            pitch = (joydata[2]-127)/127.0*np.pi/8
-            yaw = (joydata[3]-127)/127.0*np.pi/8
+            #thrust = -(joydata[4]-127)/127.0
+            roll = (joydata[1]-127)/127.0*np.pi/2
+            pitch = (joydata[2]-127)/127.0*np.pi/2
+            yaw = (joydata[3]-127)/127.0*np.pi/2
             #print(roll, pitch, yaw)
-            delta_voltage = 0.5*thrust
+            #delta_voltage = 0.5*thrust
             roll_ref = roll
             pitch_ref = pitch
             yaw_ref = yaw
@@ -187,8 +192,9 @@ def flight_sim():
             delta_roll = roll_pid.update(roll_ref, rate_p, control_interval)
             delta_pitch = pitch_pid.update(pitch_ref, rate_q, control_interval)
             delta_yaw = yaw_pid.update(yaw_ref, rate_r, control_interval)
-            
-        voltage = nominal_voltage + delta_voltage
+            delta_voltage = alt_pid.update(0.0, zi, control_interval)
+
+        voltage = nominal_voltage - delta_voltage
         fr = voltage - delta_roll + delta_pitch + delta_yaw# - 0.01*np.cos(psi - 10*np.pi/180)
         fl = voltage + delta_roll + delta_pitch - delta_yaw# - 0.01*np.cos(psi - 10*np.pi/180)
         rr = voltage - delta_roll - delta_pitch - delta_yaw# + 0.01*np.cos(psi - 10*np.pi/180)
