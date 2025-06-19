@@ -68,7 +68,7 @@ class render():
         for pos,axis in zip(position,axis):
             ring(pos=vec(*pos), axis=vec(*axis), radius = 0.3, thickness = 0.015, color=color.purple)
 
-        Ring_Num = 50
+        Ring_Num = 500
         rings=[]
         for i in range(Ring_Num):
             angle=np.random.randint(0,90)
@@ -315,7 +315,7 @@ class render():
             #後ろから追いかける
             self.xc =  xf - 5*cos(direction)
             self.yc =  yf - 5*sin(direction)
-            self.zc =  zf - 0.2
+            self.zc =  zf - 1.0#0.2
         elif pattern == 1:
             #上から追いかける
             self.xc =  xf - 5

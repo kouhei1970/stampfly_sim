@@ -135,7 +135,7 @@ def flight_sim():
     nominal_voltage = stampfly.motor_prop[0].equilibrium_voltage(Weight/4)
     damage_voltage = stampfly.motor_prop[0].equilibrium_voltage(Weight/2)
     nominal_anguler_velocity = stampfly.motor_prop[0].equilibrium_anguler_velocity(Weight/4)
-    dist = 1e-6
+    dist = 0  # 1e-8#1e-6
     stampfly.set_disturbance(moment=[dist, dist, dist], force=[dist, dist, dist])
     stampfly.mp1.omega = nominal_anguler_velocity
     stampfly.mp2.omega = nominal_anguler_velocity
@@ -160,8 +160,37 @@ def flight_sim():
     roll_pid = PID(0.2, 2.0, 0.002)
     pitch_pid = PID(0.2, 1.0, 0.003)
     yaw_pid = PID(0.5, 2.0, 0.002)
-
     alt_pid = PID(10.0, 5.0, 5.0)
+
+    # Joystick calibration
+    thrust_ave = 0.0
+    roll_ave = 0.0
+    pitch_ave = 0.0
+    yaw_ave = 0.0
+
+    i = 0
+    num = 100
+    while i < num:
+        joydata = joystick.read()
+        if joydata is not None:
+            thrust = -(joydata[4]-127)/127.0
+            roll = (joydata[1]-127)/127.0*np.pi
+            pitch = (joydata[2]-127)/127.0*np.pi
+            yaw = (joydata[3]-127)/127.0*np.pi
+            thrust_ave += thrust
+            roll_ave += roll
+            pitch_ave += pitch
+            yaw_ave += yaw
+            i += 1
+            print(i, )
+    thrust_ave /= num
+    roll_ave /= num
+    pitch_ave /= num
+    yaw_ave /= num
+    print("thrust_ave: ", thrust_ave)
+    print("roll_ave: ", roll_ave)
+    print("pitch_ave: ", pitch_ave)
+    print("yaw_ave: ", yaw_ave)
 
     while t < 30.0:
         rate_p = stampfly.body.pqr[0][0]
@@ -174,18 +203,19 @@ def flight_sim():
         yi = stampfly.body.position[1][0]
         zi = stampfly.body.position[2][0]    
         
-        joydata=joystick.read()
+        joydata = joystick.read()
         if joydata is not None:
-            #thrust = -(joydata[4]-127)/127.0
-            roll = (joydata[1]-127)/127.0*np.pi/2
-            pitch = (joydata[2]-127)/127.0*np.pi/2
-            yaw = (joydata[3]-127)/127.0*np.pi/2
-            #print(roll, pitch, yaw)
-            #delta_voltage = 0.5*thrust
+            thrust = -(joydata[4]-127)/127.0 - thrust_ave
+            roll = (joydata[1]-127)/127.0*np.pi - roll_ave
+            pitch = (joydata[2]-127)/127.0*np.pi - pitch_ave
+            yaw = (joydata[3]-127)/127.0*np.pi - yaw_ave
+            #print(thrust, roll, pitch, yaw)
+            delta_voltage = 0.5*thrust
             roll_ref = roll
             pitch_ref = pitch
-            yaw_ref = yaw
+            yaw_ref = 0.1*yaw
         
+        #アクロモードになってます。スタビライズモードは未実装
         control_on = True
         if t >= control_time and control_on:
             control_time += control_interval
@@ -195,14 +225,14 @@ def flight_sim():
             delta_voltage = alt_pid.update(0.0, zi, control_interval)
 
         voltage = nominal_voltage - delta_voltage
-        fr = voltage - delta_roll + delta_pitch + delta_yaw# - 0.01*np.cos(psi - 10*np.pi/180)
-        fl = voltage + delta_roll + delta_pitch - delta_yaw# - 0.01*np.cos(psi - 10*np.pi/180)
-        rr = voltage - delta_roll - delta_pitch - delta_yaw# + 0.01*np.cos(psi - 10*np.pi/180)
-        rl = voltage + delta_roll - delta_pitch + delta_yaw# + 0.01*np.cos(psi - 10*np.pi/180)
+        fr = voltage - delta_roll + delta_pitch + delta_yaw  # - 0.01*np.cos(psi - 10*np.pi/180)
+        fl = voltage + delta_roll + delta_pitch - delta_yaw  # - 0.01*np.cos(psi - 10*np.pi/180)
+        rr = voltage - delta_roll - delta_pitch - delta_yaw  # + 0.01*np.cos(psi - 10*np.pi/180)
+        rl = voltage + delta_roll - delta_pitch + delta_yaw  # + 0.01*np.cos(psi - 10*np.pi/180)
         voltage = [fr, rr, rl, fl]
         #print(voltage)
         stampfly.step(voltage, h)
-        key=Render.rendering(t, stampfly)
+        key = Render.rendering(t, stampfly)
 
         t += h
         T.append(t)
@@ -212,12 +242,12 @@ def flight_sim():
         EULER.append(stampfly.body.euler.copy())
         POS.append(stampfly.body.position.copy())
 
-    T=np.array(T)
-    EULER=np.array(EULER)
-    PQR=np.array(PQR)
-    PQR_REF=np.array(PQR_REF)
-    UVW=np.array(UVW)
-    POS=np.array(POS)
+    T = np.array(T)
+    EULER = np.array(EULER)
+    PQR = np.array(PQR)
+    PQR_REF = np.array(PQR_REF)
+    UVW = np.array(UVW)
+    POS = np.array(POS)
 
     if True:
         plt.subplot(4,1,1)
