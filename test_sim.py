@@ -192,7 +192,7 @@ def flight_sim():
     print("pitch_ave: ", pitch_ave)
     print("yaw_ave: ", yaw_ave)
 
-    while t < 30.0:
+    while t < 100.0:
         rate_p = stampfly.body.pqr[0][0]
         rate_q = stampfly.body.pqr[1][0]
         rate_r = stampfly.body.pqr[2][0]
@@ -222,9 +222,9 @@ def flight_sim():
             delta_roll = roll_pid.update(roll_ref, rate_p, control_interval)
             delta_pitch = pitch_pid.update(pitch_ref, rate_q, control_interval)
             delta_yaw = yaw_pid.update(yaw_ref, rate_r, control_interval)
-            delta_voltage = alt_pid.update(0.0, zi, control_interval)
+            #delta_voltage = alt_pid.update(0.0, zi, control_interval)
 
-        voltage = nominal_voltage - delta_voltage
+        voltage = nominal_voltage + delta_voltage
         fr = voltage - delta_roll + delta_pitch + delta_yaw  # - 0.01*np.cos(psi - 10*np.pi/180)
         fl = voltage + delta_roll + delta_pitch - delta_yaw  # - 0.01*np.cos(psi - 10*np.pi/180)
         rr = voltage - delta_roll - delta_pitch - delta_yaw  # + 0.01*np.cos(psi - 10*np.pi/180)

@@ -313,9 +313,9 @@ class render():
         pattern = 0
         if pattern == 0:
             #後ろから追いかける
-            self.xc =  xf - 5*cos(direction)
-            self.yc =  yf - 5*sin(direction)
-            self.zc =  zf - 1.0#0.2
+            self.xc =  xf - 1*cos(direction)
+            self.yc =  yf - 1*sin(direction)
+            self.zc =  zf - 0.15#0.2
         elif pattern == 1:
             #上から追いかける
             self.xc =  xf - 5
@@ -357,8 +357,8 @@ class render():
             self.copter.axis = axis_x
             self.copter.up = axis_z
             self.anim_time += 1/self.fps
-            #self.follow_camera_setting(drone, t=sim_time)            
-            self.fix_camera_setting(drone, t=sim_time)
+            self.follow_camera_setting(drone, t=sim_time)            
+            #self.fix_camera_setting(drone, t=sim_time)
             self.timer_text.text = f"Elapsed Time: {sim_time:.1f} s"  # 表示を更新
         return self.keyname
             
