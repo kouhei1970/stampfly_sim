@@ -30,8 +30,8 @@ import os
 class render():
     def __init__(self, fps):
         # VPythonのシーンを設定
-        height = 700
-        width = 700#int(height*9/16)
+        height = 595
+        width = 1000#int(height*9/16)
         self.scene = canvas(title='StampFly Simulation', width=width, height=height, background=vector(2, 34, 43)/255)
         self.scene.ambient = vec(0.37, 0.37, 0.37)  # 環境光を明るくする
         self.fps = fps
