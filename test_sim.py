@@ -115,6 +115,7 @@ def flight_sim():
     mass = 0.035
     Weight = mass * 9.81
     stampfly = mc.multicopter(mass= mass, inersia=[[9.16e-6, 0.0, 0.0],[0.0, 13.3e-6, 0.0],[0.0, 0.0, 20.4e-6]])
+    stampfly.body.set_position([[0.5],[0.0],[-0.015]])
     Render=render(60)
     joystick = Joystick()
     joystick.open()
@@ -157,10 +158,15 @@ def flight_sim():
     control_time = 0.0
     control_interval = 1e-2
 
-    roll_pid = PID(0.2, 2.0, 0.002)
-    pitch_pid = PID(0.2, 1.0, 0.003)
-    yaw_pid = PID(0.5, 2.0, 0.002)
+    roll_pid = PID(5.0, 1.0, 0.0)
+    pitch_pid = PID(5.0, 1.0, 0.0)
+    yaw_pid = PID(0.5, 0.01, 0.0)
     alt_pid = PID(10.0, 5.0, 5.0)
+
+    roll_rate_pid =PID(0.2,10.0,0.002)
+    pitch_rate_pid =PID(0.2,10.0,0.002)
+    yaw_rate_pid =PID(1.0,2.0,0.001)
+
 
     # Joystick calibration
     thrust_ave = 0.0
@@ -192,7 +198,7 @@ def flight_sim():
     print("pitch_ave: ", pitch_ave)
     print("yaw_ave: ", yaw_ave)
 
-    while t < 100.0:
+    while t < 6000.0:
         rate_p = stampfly.body.pqr[0][0]
         rate_q = stampfly.body.pqr[1][0]
         rate_r = stampfly.body.pqr[2][0]
@@ -213,15 +219,21 @@ def flight_sim():
             delta_voltage = 0.5*thrust
             roll_ref = roll
             pitch_ref = pitch
-            yaw_ref = 0.1*yaw
+            yaw_ref = 1.0*yaw
         
-        #アクロモードになってます。スタビライズモードは未実装
+        #スタビライズモードは実装ちゅう
         control_on = True
         if t >= control_time and control_on:
             control_time += control_interval
-            delta_roll = roll_pid.update(roll_ref, rate_p, control_interval)
-            delta_pitch = pitch_pid.update(pitch_ref, rate_q, control_interval)
-            delta_yaw = yaw_pid.update(yaw_ref, rate_r, control_interval)
+            roll_rate_ref = roll_pid.update(roll_ref, phi, control_interval)
+            pitch_rate_ref = pitch_pid.update(pitch_ref, theta, control_interval)
+            yaw_rate_ref = yaw_ref
+            #yaw_rate_ref = yaw_pid.update(yaw_ref, psi, control_interval)
+
+
+            delta_roll = roll_rate_pid.update(roll_rate_ref, rate_p, control_interval)
+            delta_pitch = pitch_rate_pid.update(pitch_rate_ref, rate_q, control_interval)
+            delta_yaw = yaw_rate_pid.update(yaw_rate_ref, rate_r, control_interval)
             #delta_voltage = alt_pid.update(0.0, zi, control_interval)
 
         voltage = nominal_voltage + delta_voltage

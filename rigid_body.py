@@ -178,6 +178,9 @@ class rigidbody():
         self.quat = self.euler2quat(self.euler)
         self.dcm = self.euler_dcm(self.euler)
 
+    def set_position(self, position):
+        self.position = np.array(position)
+
     def step(self, force, torque, dt):
         #RK4で剛体の運動方程式を解くとともに,グローバル座標系の速度,位置,DCMを更新する
         #1. k1を求める

@@ -30,7 +30,7 @@ import os
 class render():
     def __init__(self, fps):
         # VPythonのシーンを設定
-        height = 595
+        height = 550
         width = 1000#int(height*9/16)
         self.scene = canvas(title='StampFly Simulation', width=width, height=height, background=vector(2, 34, 43)/255)
         self.scene.ambient = vec(0.37, 0.37, 0.37)  # 環境光を明るくする
@@ -52,18 +52,19 @@ class render():
 
         #Ringを表示
         sqrt2 = np.sqrt(2)
-        position = [(4, 0, 0), (6, 0, 0), (6+sqrt2, -2+sqrt2, 0), (8, -2, 0), 
-                    (6+sqrt2, -2-sqrt2, 0),(6, -4, 0), (6-sqrt2, -6+sqrt2, 0), (4, -6, 0),
-                    (4, -8, 0),(2+sqrt2, -8-sqrt2, 0), (2, -10, 0),(2-sqrt2, -8-sqrt2, 0),
-                    (0, -8, 0), (0, -6, 0),(0, -4, 0), (0, -2, 0)]
-        
+        ring_z= -1
+        position = [(4, 0, ring_z), (6, 0, ring_z), (6+sqrt2, -2+sqrt2, ring_z), (8, -2, ring_z), 
+                    (6+sqrt2, -2-sqrt2, ring_z),(6, -4, ring_z), (6-sqrt2, -6+sqrt2, ring_z), (4, -6, ring_z),
+                    (4, -8, ring_z),(2+sqrt2, -8-sqrt2, ring_z), (2, -10, ring_z),(2-sqrt2, -8-sqrt2, ring_z),
+                    (0, -8, ring_z), (0, -6, ring_z),(0, -4, ring_z), (0, -2, ring_z)]
+
         axis = [(1, 0, 0), (1, 0, 0), (-1, 1, 0), (0, 1, 0),
                 (1, 1, 0), (1, 0, 0), (1, 1, 0), (0, 1, 0),
                 (0, 1, 0), (1, 1, 0), (1, 0, 0),(-1, 1, 0), 
                 (0, 1, 0), (0, 1, 0), (0, 1, 0), (0, 1, 0)]
 
-        ring_s = ring(pos=vec(2, 0, 0), axis=vec(1, 0, 0), radius = 0.3, thickness = 0.015, color=color.yellow)
-        ring_g = ring(pos=vec(0, 0, -1), axis=vec(0, 0, 1), radius = 0.3, thickness = 0.015, color=color.green)
+        ring_s = ring(pos=vec(2, 0, ring_z), axis=vec(1, 0, 0), radius = 0.3, thickness = 0.015, color=color.yellow)
+        ring_g = ring(pos=vec(0, 0, 1), axis=vec(0, 0, 1), radius = 0.3, thickness = 0.015, color=color.green)
 
         for pos,axis in zip(position,axis):
             ring(pos=vec(*pos), axis=vec(*axis), radius = 0.3, thickness = 0.015, color=color.purple)
@@ -77,7 +78,7 @@ class render():
                 y=np.random.randint(-60, 60)
                 if not(-1<x<9 and -11<y<1):
                     break
-            z= np.random.randint(-2, 2)*0.5
+            z= np.random.randint(0, 2)*0.5+ ring_z
             rings.append(self.ring_object(pos=vec(x, y, z), angle=angle))
 
         self.scene.bind('keydown', self.key_pressed)
@@ -94,8 +95,8 @@ class render():
     def floor_object(self):
         # 背景のボックスにテクスチャを適用
         #self.make_texture()
-        background = box(pos=vector(0.0, 0.0, 0.0), size=vector(0.1, 0.1, 120.0), texture="checkerboard.png")        
-        background.pos = vec(0.0, 0.0, 10.0)
+        background = box(pos=vector(0.0, 0.0, 0.0005), size=vector(0.001, 0.001, 120.0), texture="checkerboard.png")        
+        background.pos = vec(0.0, 0.0, 0.0)
         background.axis = vec(0.0, 120.0, 0.0)#物体の回転軸
         angle = 0
         x=sin(radians(angle))
@@ -347,6 +348,50 @@ class render():
         self.scene.fov = 2*atan2(scene_range, d)
 
 
+    def fix_human_setting(self, drone, t):
+        #Cameraの設定
+        #カメラの見たい場所（ドローンの位置）
+        xf = drone.body.position[0][0]
+        yf = drone.body.position[1][0]
+        zf = drone.body.position[2][0]
+        
+        #カメラの位置（操縦者の固定位置）
+        self.xc = 0.0  # 操縦者のX座標（固定）
+        self.yc = 0.0  # 操縦者のY座標（固定）
+        self.zc = -1.5  # 操縦者のZ座標（固定）
+
+        #カメラの向き（操縦者がドローンを見る方向）
+        axis_x = xf - self.xc
+        axis_y = yf - self.yc
+        axis_z = zf - self.zc
+        d = sqrt(axis_x**2 + axis_y**2 + axis_z**2)
+        
+        # 操縦者の体の向きを計算（ドローンの方向に体を向ける）
+        # XY平面での角度を計算
+        angle_xy = atan2(axis_y, axis_x)
+        
+        # 体の向きを表すupベクトルを計算
+        # 基本的には上向き（Z軸負方向）だが、ドローンの位置によって少し傾ける
+        # ドローンが高いところにあれば上を向き、低いところにあれば下を向く
+        tilt_factor = 0.0  # 体の傾き具合を調整
+        up_x = tilt_factor * sin(angle_xy)
+        up_y = -tilt_factor * cos(angle_xy)
+        up_z = -1.0  # 基本的には上向き
+        
+        # 視線の方向を設定
+        self.scene.autoscale = False  # オートスケールを無効
+        self.scene.camera.pos = vector(self.xc, self.yc, self.zc)  # カメラの位置（操縦者の位置）
+        self.scene.camera.axis = vector(axis_x, axis_y, axis_z)  # カメラの向き（操縦者の視線）
+        self.scene.center = vector(xf, yf, zf)  # カメラの注視点（ドローンの位置）
+        self.scene.up = vector(up_x, up_y, up_z)  # 操縦者の体の向き
+
+        #FOVの設定（固定値）
+        # 距離に応じてズームしないように固定のFOV値を使用
+        # 人間の視野角に近い値（約60度）を使用
+        self.scene.fov = radians(40)  # 60度の固定FOV
+
+
+
     def rendering(self, sim_time, drone):
         #3D描画        
         if(sim_time >= self.anim_time):
@@ -357,9 +402,8 @@ class render():
             self.copter.axis = axis_x
             self.copter.up = axis_z
             self.anim_time += 1/self.fps
-            self.follow_camera_setting(drone, t=sim_time)            
+            #self.follow_camera_setting(drone, t=sim_time)            
             #self.fix_camera_setting(drone, t=sim_time)
+            self.fix_human_setting(drone, t=sim_time)  # 操縦者視点の設定を使用
             self.timer_text.text = f"Elapsed Time: {sim_time:.1f} s"  # 表示を更新
         return self.keyname
-            
-            
