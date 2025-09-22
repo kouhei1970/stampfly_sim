@@ -34,6 +34,7 @@ class render():
         width = 1000#int(height*9/16)
         self.scene = canvas(title='StampFly Simulation', width=width, height=height, background=vector(2, 34, 43)/255)
         self.scene.ambient = vec(0.37, 0.37, 0.37)  # 環境光を明るくする
+        #self.scene.autoscale = False
         self.fps = fps
         self.anim_time = 0.0
         self.frame_num = 0
@@ -48,7 +49,7 @@ class render():
 
 
         #床面を表示
-        self.floor_object()
+        #self.floor_object()
 
         #Ringを表示
         sqrt2 = np.sqrt(2)
@@ -84,7 +85,10 @@ class render():
         self.scene.bind('keydown', self.key_pressed)
     
         #StampFly表示
-        self.stampfly_object()
+        #self.stampfly_object()
+
+        #Hexacopter表示
+        self.hexacopter_object()
 
         self.timer_text = wtext(text="Elapsed Time: 0.0 s")
 
@@ -124,6 +128,58 @@ class render():
         # 画像を保存
         image.save("checkerboard.png")
 
+    def read_obj(self, filename, color=vector(1,0,0),position=vec(0,0,0)):
+        #STLファイルの構造はStampFlyの前後がx軸、上下がy軸、左右がz軸
+        #シミュレーションの座標系は前後（前）がx軸、左右（右）がy軸、上下（下）がz軸
+        #STLファイルのYとZのデータを入れ替える.更にZは符号反転
+        # STLファイルを読み込む（ファイルパスを指定）
+        stl_mesh = mesh.Mesh.from_file(filename)
+
+        obj=[]
+        # STLメッシュデータの頂点をVPython用に変換して表示
+        for i in range(len(stl_mesh.vectors)):
+            #print(i)
+            # 各三角形の頂点を取得
+            p0=vector(*stl_mesh.vectors[i][0])/1000
+            #p0.y = -p0.y
+            #dummy = p0.y
+            #p0.y = p0.z
+            #p0.z = dummy
+            p1=vector(*stl_mesh.vectors[i][1])/1000
+            #p1.y = -p1.y
+            #dummy = p1.y
+            #p1.y = p1.z
+            #p1.z = dummy
+            p2=vector(*stl_mesh.vectors[i][2])/1000
+            #p2.y = -p2.y
+            #dummy = p2.y
+            #p2.y = p2.z
+            #p2.z = dummy
+            normal = norm(cross((p1-p0),(p2-p1)))
+            #r = 0.8
+            #g = 0.0
+            #b = 0.0
+   
+            #print(r,g,b)
+            #color = vector(r,g,b)
+            #位置調整      
+            p0 += position
+            p1 += position
+            p2 += position
+            # VPythonのvertexオブジェクトとして頂点を作成
+            v0 = vertex(pos=p0, normal=normal, color=color)
+            v1 = vertex(pos=p1, normal=normal, color=color)
+            v2 = vertex(pos=p2, normal=normal, color=color)
+            #print(v0)
+            # VPythonのtriangleオブジェクトとして描画
+            tri=triangle(
+                v0=v0,
+                v1=v1,
+                v2=v2,
+            )
+            obj.append(tri)
+        
+        return obj
 
     def stampfly_object(self):
         #STLファイルの構造はStampFlyの前後がx軸、上下がy軸、左右がz軸
@@ -221,6 +277,18 @@ class render():
         self.copter.up = vec(0,0,1)
         #sleep(100)
 
+    def hexacopter_object(self):
+
+        obj = self.read_obj('benzen.stl', color=vector(0.3,0.3,0.3))
+        #obj += self.read_obj('motor.stl', color=vector(0.1,0.1,0.8), position=vec(0.1,0.0,0.05))
+        #obj += self.read_obj('motor.stl', color=vector(0.0,0.1,0.8), position=vec(0.1*np.cos(30*np.pi/180), 0.1*np.sin(30*np.pi/180), 0.0))
+        self.copter = compound(obj)
+        self.copter.pos = vec(0.0, 0.0, 0.0)
+        self.copter.axis = vec(1,0,0)
+        self.copter.up = vec(0,0,1)
+        #sleep(100)
+
+
     def camera_init(self):
         #Cameraの設定
         #カメラの見たい場所
@@ -229,9 +297,14 @@ class render():
         zf = 0.0
         
         #カメラの位置
-        self.xc =  xf - 0.00 #scene.upが(0,0,-1)のためこれがうまく表示されない。(0,1,0)に変更するとうまくいく
-        self.yc =  yf - 0.2
+        #self.xc =  xf - 0.00 #scene.upが(0,0,-1)のためこれがうまく表示されない。(0,1,0)に変更するとうまくいく
+        #self.yc =  yf - 0.2
+        #self.zc =  zf - 0.0
+        self.xc =  xf - 0.5 #scene.upが(0,0,-1)のためこれがうまく表示されない。(0,1,0)に変更するとうまくいく
+        self.yc =  yf - 0.0
         self.zc =  zf - 0.0
+
+
 
         #カメラの向き
         axis_x = xf - self.xc
@@ -251,7 +324,7 @@ class render():
         self.scene.center = vector(xf, yf, zf)  # カメラの注視点
         self.scene.camera.pos = vector(self.xc, self.yc, self.zc)  # カメラの位置
         self.scene.camera.axis = vector(axis_x, axis_y, axis_z)  # カメラの向き
-        self.scene.up=vector(0,1,0)
+        self.scene.up=vector(0,0,-1)
         
         #FOVの設定
         scene_range = 0.2
@@ -402,8 +475,8 @@ class render():
             self.copter.axis = axis_x
             self.copter.up = axis_z
             self.anim_time += 1/self.fps
-            #self.follow_camera_setting(drone, t=sim_time)            
+            self.follow_camera_setting(drone, t=sim_time)            
             #self.fix_camera_setting(drone, t=sim_time)
-            self.fix_human_setting(drone, t=sim_time)  # 操縦者視点の設定を使用
+            #self.fix_human_setting(drone, t=sim_time)  # 操縦者視点の設定を使用
             self.timer_text.text = f"Elapsed Time: {sim_time:.1f} s"  # 表示を更新
         return self.keyname

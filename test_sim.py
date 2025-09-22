@@ -404,7 +404,7 @@ def test_three_rotor():
     stampfly.body.set_pqr([[0.0],[0.0],[0.0]])
     stampfly.body.set_uvw([[0.0],[0.0],[0.0]])
     dist = 1e-4
-    stampfly.set_duturbance(moment=[dist, dist, dist], force=[dist, dist, dist])
+    stampfly.set_disturbance(moment=[dist, dist, dist], force=[dist, dist, dist])
     battery_voltage = 3.7
     nominal_voltage = stampfly.motor_prop[0].equilibrium_voltage(Weight/4)
     damage_voltage = stampfly.motor_prop[0].equilibrium_voltage(Weight/3)
@@ -492,7 +492,8 @@ def test_ringworld():
 
     stampfly.body.set_pqr([[0.0],[0.0],[0.0]])
     stampfly.body.set_uvw([[0.8],[0.0],[0.0]])
-    stampfly.set_duturbance(moment=[0.0, 0.0, 0.0], force=[0.0, 0.0, 0.0])
+    stampfly.body.set_position([[0.0],[0.0],[-1.0]])
+    stampfly.set_disturbance(moment=[0.0, 0.0, 0.0], force=[0.0, 0.0, 0.0])
     battery_voltage = 3.7
     nominal_voltage = stampfly.motor_prop[0].equilibrium_voltage(Weight/4)
     damage_voltage = stampfly.motor_prop[0].equilibrium_voltage(Weight/2)
@@ -545,6 +546,7 @@ def test_ringworld():
     index = 0
     eps =1e-4
     forward_vec = np.array([1.0, 0.0, 0.0])
+    
     while t < 24.0:
         voltage = [nominal_voltage, nominal_voltage, nominal_voltage, nominal_voltage]
         stampfly.body.set_uvw(uvw_ref[index])
@@ -564,7 +566,7 @@ def test_ringworld():
         if np.isnan(stampfly.body.uvw[0][0]):
             break 
 
-        Render.rendering(t, stampfly)
+        #Render.rendering(t, stampfly)
 
         T.append(t)
         PQR.append(stampfly.body.pqr.copy())
@@ -620,5 +622,5 @@ def test_ringworld():
 if __name__ == "__main__":
     np.random.seed(1)
     #test_three_rotor()
-    #test_ringworld()
-    flight_sim()
+    test_ringworld()
+    #flight_sim()
